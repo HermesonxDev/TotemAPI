@@ -1,0 +1,28 @@
+Criação de Models
+
+1. Nome do Model:
+    - O nome do Model deve ser singular (Product em vez de Products). Isso é um padrão do Laravel.
+
+
+2. Campos Automáticos (_id, createdAt, updatedAt):
+    - O Laravel já trata _id, created_at e updated_at automaticamente, então não é necessário incluí-los no fillable, a menos que você queira manipulá-los diretamente.
+
+
+3. $fillable vs. $guarded:
+    - Como você tem muitos campos, uma alternativa melhor seria usar $guarded = [];, permitindo que todos os campos sejam preenchidos sem precisar listá-los.
+
+
+4. Campos Aninhados (credit, period, sliderHeader, stock):
+    - Como esses campos são objetos dentro do JSON, seu Model pode incluir casts para garantir que Laravel trabalhe corretamente com eles.
+
+
+5. $casts:
+    - Tudo que for float, boolean e array tem que ser colocado tambem dentro dessa variavel $casts, especificando o tipo do campo.
+
+
+6. Quando Usar $fillable e $casts:
+    - Use $fillable para definir quais campos podem ser preenchidos em massa (criação/atualização de dados).
+
+    - Use $casts para garantir que os valores sejam convertidos automaticamente para o tipo correto ao salvar/buscar do banco.
+
+    - Campos que podem ser null não precisam estar no $casts, a menos que você queira garantir um valor padrão (como array em vez de null).
