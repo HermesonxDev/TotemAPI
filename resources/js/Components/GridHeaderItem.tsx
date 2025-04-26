@@ -1,9 +1,11 @@
 interface IGridHeaderItemProps {
-    children: React.ReactNode
+    children?: React.ReactNode,
+    padding?: string,
+    className?: string
 }
 
-const GridHeaderItem: React.FC<IGridHeaderItemProps> = ({ children }) => (
-    <div className="p-[10px] flex justify-center">
+const GridHeaderItem: React.FC<IGridHeaderItemProps> = ({ children, padding, className }) => (
+    <div className={`${padding} text-center ${className}`}>
         {children}
     </div>
 )

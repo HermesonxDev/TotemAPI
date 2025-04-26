@@ -4,9 +4,12 @@ namespace App\Models;
 
 use Carbon\Carbon;
 use MongoDB\Laravel\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class Totemuser extends Model
-{
+class Totemuser extends Model {
+
+    use HasFactory;
+    
     protected $connection = 'mongodb';
     protected $collection = 'totemuser';
 

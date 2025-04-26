@@ -30,7 +30,7 @@ class ProductCategoryController extends Controller {
         }
 
         try {
-            $maxSeq = Productcategory::max('seq');
+            $maxSeq = Productcategory::max('seq') ?? 0;
 
             $category = new Productcategory();
 

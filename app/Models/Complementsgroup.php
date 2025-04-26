@@ -4,9 +4,12 @@ namespace App\Models;
 
 use Carbon\Carbon;
 use MongoDB\Laravel\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class Complementsgroup extends Model
-{
+class Complementsgroup extends Model {
+
+    use HasFactory;
+    
     protected $connection = 'mongodb';
     protected $collection = 'complementsgroups';
 
@@ -18,6 +21,7 @@ class Complementsgroup extends Model
         'seq',
         'title',
         'description',
+        'categories',
         'branch',
         'company',
         'code',

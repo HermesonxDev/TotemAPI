@@ -5,7 +5,7 @@ import CategoryAndComplementList from '@/Components/CategoryAndComplementList';
 import KDS from '@/Components/KDS';
 import SideMenu from '@/Components/SideMenu';
 
-interface IBranchMenuProps {
+interface IItemsProps {
     branch: Branch,
     company: Company,
     categories?: Category[],
@@ -20,7 +20,7 @@ interface IBranchMenuProps {
     sortComplementsProducts?: Product[],
 }
 
-export default function BranchMenu({
+export default function Items({
     branch,
     company,
     categories,
@@ -33,7 +33,7 @@ export default function BranchMenu({
     complementID,
     complementsProducts,
     sortComplementsProducts
-}: IBranchMenuProps) {
+}: IItemsProps) {
 
     return (
         <AuthenticatedLayout

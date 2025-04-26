@@ -4,9 +4,12 @@ namespace App\Models;
 
 use Carbon\Carbon;
 use MongoDB\Laravel\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class Product extends Model
-{
+class Product extends Model {
+
+    use HasFactory;
+    
     protected $connection = 'mongodb';
     protected $collection = 'products';
 
@@ -34,7 +37,8 @@ class Product extends Model
         'staticImage',
         'stock',
         'costprice',
-        'price'
+        'price',
+        'complementGroupCategory'
     ];
 
     protected $casts = [

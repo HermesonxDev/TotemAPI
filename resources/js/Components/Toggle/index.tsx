@@ -21,7 +21,6 @@ const Toggle: React.FC<IToggleProps> = ({
             checked={checked}
             uncheckedIcon={false}
             checkedIcon={false}
-            margin={margin}
             onChange={onChange}
         />
         <ToggleLabel>{ labelRight }</ToggleLabel>

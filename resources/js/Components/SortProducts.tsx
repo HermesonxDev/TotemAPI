@@ -1,22 +1,21 @@
 import { DragDropContext, Droppable } from "@hello-pangea/dnd"
 import { useEffect, useState } from "react"
 import CardDroppable from "./CardDroppable"
-import { Branch, Company, Category, Product } from "@/utils/interfaces"
+import { Product } from "@/utils/interfaces"
 import api from "@/Services/api";
 import { Link, usePage } from "@inertiajs/react"
 import Loading from "./Loading";
 
 interface ISortProductsProps {
     sortedProducts: Product[],
-    type: string
+    type: string,
+    branch: string,
+    company: string | undefined,
 }
 
-const SortProducts: React.FC<ISortProductsProps> = ({ sortedProducts, type }) => {
+const SortProducts: React.FC<ISortProductsProps> = ({ sortedProducts, type, branch, company }) => {
 
     const { props } = usePage()
-
-    const branch = props.branch as Branch
-    const company = props.company as Company
 
     const [products, setProducts] = useState<Product[]>([])
     const [loading, setLoading] = useState<boolean>(false)
@@ -44,11 +43,11 @@ const SortProducts: React.FC<ISortProductsProps> = ({ sortedProducts, type }) =>
             await api.post(`/sort/products`, data)
 
             if (type === "category") {
-                window.location.href = `/company/${company ? company.id : ""}/branch/${branch ? branch.id : ""}/products-categories`
+                window.location.href = `/company/${company}/branch/${branch}/products-categories`
             }
 
             if (type === "complement") {
-                window.location.href = `/company/${company ? company.id : ""}/branch/${branch ? branch.id : ""}/complements-categories`
+                window.location.href = `/company/${company}/branch/${branch}/complements-categories`
             }
         } catch (error) {
             console.error("Erro no handleConfirmChange: ", error)
@@ -97,10 +96,17 @@ const SortProducts: React.FC<ISortProductsProps> = ({ sortedProducts, type }) =>
                             onClick={() => handleConfirmChange(products)}
                         >Confirmar</button>
 
-                        <Link
-                            className="text-white bg-red-600 px-3 py-1 rounded"
-                            href={`/company/${company ? company.id : ""}/branch/${branch ? branch.id : ""}/products-categories`}
-                        >Fechar</Link>
+                        {type === 'category'
+                            ? <Link
+                                className="text-white bg-red-600 px-3 py-1 rounded"
+                                href={`/company/${company}/branch/${branch}/products-categories`}
+                              >Fechar</Link>
+
+                            : <Link
+                                className="text-white bg-red-600 px-3 py-1 rounded"
+                                href={`/company/${company}/branch/${branch}/complements-categories`}
+                              >Fechar</Link>
+                        }
                     </>
                     : <Loading
                         width="50px"

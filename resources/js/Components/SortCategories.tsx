@@ -1,21 +1,20 @@
 import { DragDropContext, Droppable } from "@hello-pangea/dnd"
 import { useEffect, useState } from "react"
 import CardDroppable from "./CardDroppable"
-import { Branch, Company, Category } from "@/utils/interfaces"
+import { Category } from "@/utils/interfaces"
 import api from "@/Services/api";
 import { Link, usePage } from "@inertiajs/react"
 import Loading from "./Loading";
 
 interface ISortCategoriesProps {
-    sortedCategories: Category[]
+    sortedCategories: Category[],
+    branch: string,
+    company: string | undefined
 }
 
-const SortCategories: React.FC<ISortCategoriesProps> = ({ sortedCategories }) => {
+const SortCategories: React.FC<ISortCategoriesProps> = ({ sortedCategories, branch, company }) => {
 
     const { props } = usePage()
-
-    const branch = props.branch as Branch
-    const company = props.company as Company
 
     const [categories, setCategories] = useState<Category[]>([])
     const [loading, setLoading] = useState<boolean>(false)
@@ -41,7 +40,7 @@ const SortCategories: React.FC<ISortCategoriesProps> = ({ sortedCategories }) =>
 
             const data = { categories: categories }
             await api.post(`/sort/categories`, data)
-            window.location.href = `/company/${company ? company.id : ""}/branch/${branch ? branch.id : ""}/products-categories`
+            window.location.href = `/company/${company}/branch/${branch}/products-categories`
         } catch (error) {
             console.error("Erro no handleConfirmChange: ", error)
         }
@@ -91,7 +90,7 @@ const SortCategories: React.FC<ISortCategoriesProps> = ({ sortedCategories }) =>
 
                         <Link
                             className="text-white bg-red-600 px-3 py-1 rounded"
-                            href={`/company/${company ? company.id : ""}/branch/${branch ? branch.id : ""}/products-categories`}
+                            href={`/company/${company}/branch/${branch}/products-categories`}
                         >Fechar</Link>
                     </>
                     : <Loading

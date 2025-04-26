@@ -4,11 +4,14 @@ namespace App\Models;
 
 use Carbon\Carbon;
 use MongoDB\Laravel\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class Apikey extends Model
-{
+class Apikey extends Model {
+
+    use HasFactory;
+    
     protected $connection = 'mongodb';
-    protected $collection = 'apikeys';
+    protected $collection = 'apikey';
 
     public const CREATED_AT = 'createdAt';
     public const UPDATED_AT = 'updatedAt';
@@ -19,10 +22,6 @@ class Apikey extends Model
         'key',
         'branches',
         '__v'
-    ];
-
-    protected $casts = [
-        'branches' => 'array'
     ];
 
     public $timestamps = true;

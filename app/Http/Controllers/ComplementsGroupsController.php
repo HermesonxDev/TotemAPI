@@ -22,7 +22,8 @@ class ComplementsGroupsController extends Controller {
             'maximum'       => 'required|string',
             'mandatory'     => 'required',
             'branch'        => 'required|string',
-            'company'       => 'required|string'
+            'company'       => 'required|string',
+            'categories'    => 'nullable'
         ]);
 
         if ($validator->fails()) {
@@ -30,7 +31,7 @@ class ComplementsGroupsController extends Controller {
         }
         
         try {
-            $maxSeq = Complementsgroup::max('seq');
+            $maxSeq = Complementsgroup::max('seq') ?? 0;
 
             $complementGroup = new Complementsgroup();
 
@@ -58,6 +59,7 @@ class ComplementsGroupsController extends Controller {
             $complementGroup->original_cloned_id = "";
             $complementGroup->settingsTotem = [];
             $complementGroup->active = filter_var($request->active, FILTER_VALIDATE_BOOLEAN);
+            $complementGroup->categories = array_map(fn($category) => new ObjectId($category), $request->categories ?? []);
 
             $complementGroup->save();
 
@@ -130,7 +132,8 @@ class ComplementsGroupsController extends Controller {
                     'ingredients' => $productComplement->ingredients,
                     'rules' => $productComplement->rules,
                     'locationTypes' => $productComplement->locationTypes,
-                    'items' => array_map(fn($product) => (string) $product, $productComplement->items)
+                    'items' => array_map(fn($product) => (string) $product, $productComplement->items),
+                    'categories' => array_map(fn($category) => (string) $category, $productComplement->categories ?? [])
                 ];
             });
 

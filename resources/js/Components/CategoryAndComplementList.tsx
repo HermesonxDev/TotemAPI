@@ -89,7 +89,11 @@ const CategoryAndComplementList: React.FC<ICategoryAndComplementListProps> = ({
                     ))}
 
                     {sortType.category &&
-                        <SortCategories sortedCategories={categories} />
+                        <SortCategories
+                            sortedCategories={categories}
+                            branch={branch}
+                            company={company}
+                        />
                     }
                 </>
             }
@@ -124,7 +128,11 @@ const CategoryAndComplementList: React.FC<ICategoryAndComplementListProps> = ({
                         ))}
                         
                     {sortType.complementGroup &&
-                        <SortComplementGroup sortedComplementsGroups={complements} />
+                        <SortComplementGroup
+                            sortedComplementsGroups={complements}
+                            branch={branch}
+                            company={company}
+                        />
                     }
                 </>
             }

@@ -28,7 +28,7 @@ class EventController extends Controller {
 
     public function acknowledgment(Request $request) {
         $validator = Validator::make($request->all(), [
-            'ids' => 'required|array',
+            'ids'      => 'required|array',
             'ids.*.id' => 'required|string'
         ]);
 

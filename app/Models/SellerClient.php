@@ -4,11 +4,14 @@ namespace App\Models;
 
 use Carbon\Carbon;
 use MongoDB\Laravel\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class SellerClient extends Model
-{
+class Sellerclient extends Model {
+
+    use HasFactory;
+    
     protected $connection = 'mongodb';
-    protected $collection = 'sellerclients';
+    protected $collection = 'Sellerclient';
 
     public const CREATED_AT = 'createdAt';
     public const UPDATED_AT = 'updatedAt';

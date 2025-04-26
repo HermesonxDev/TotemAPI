@@ -4,9 +4,12 @@ namespace App\Models;
 
 use Carbon\Carbon;
 use MongoDB\Laravel\Eloquent\Model;;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class Event extends Model
-{
+class Event extends Model {
+
+    use HasFactory;
+    
     protected $connection = 'mongodb';
     protected $collection = 'events';
 

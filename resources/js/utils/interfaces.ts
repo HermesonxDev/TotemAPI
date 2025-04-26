@@ -13,6 +13,19 @@ export interface User {
 }
 
 
+export interface INotificationContent{
+    title: string,
+    message: string
+}
+
+export interface Loadings {
+    [id: string]: {
+        category?: string,
+        complementGroup?: string,
+        status?: string,
+        soldOut?: string
+    }
+}
 /* ############################################################################# */
 /* ################################ Branches ################################### */
 /* ############################################################################# */
@@ -58,6 +71,7 @@ export interface Branch {
     contactEmail: string,
     mpToken: string,
     id: string
+    _id?: string
 }
 
 export interface BranchFacebook {
@@ -140,7 +154,21 @@ export interface BranchSettingsTotem {
     bannerHeader?: BannerHeader,
     allowPrinting?: boolean,
     enableMicroMarket?: boolean,
-    controllerId?: string
+    controllerId?: string,
+    totemAdminPassword?: {
+        password: string,
+        createdAt: string,
+        expirationDate: string,
+        expirationInMinutes: number
+    },
+    totemSerialNumber?: string,
+    plugPagActivationKey?: string,
+    askforCPF?: boolean,
+    askforClientsPassword?: boolean,
+    askforPhone?: boolean,
+    paymentLock?: boolean,
+    memberShipMode?: boolean,
+    allowDelivery?: boolean,
 }
 
 export interface BranchSettingsWeb {
@@ -223,7 +251,8 @@ export interface BranchAddress {
     number: string,
     neighborhood: string,
     city: string,
-    state: string
+    state: string,
+    complement?: string
 }
 
 export interface BranchIntegrations {
@@ -269,7 +298,7 @@ export interface Product {
     original_cloned_id: string,
     active: boolean,
     credit: Credit,
-    period: Period,
+    period: ProductPeriod,
     complementsGroups: string[],
     sliderHeader: SliderHeader,
     settingsTotem: SettingsTotem,
@@ -278,7 +307,8 @@ export interface Product {
     stock: Stock,
     costprice: number,
     indoorPrices: any[],
-    price: number
+    price: number,
+    complementGroupCategory?: string
 }
 
 
@@ -449,6 +479,33 @@ export interface Complement {
 }
 
 
+export interface ApiKey {
+    updatedAt: string,
+    createdAt: string,
+    name: string,
+    company: string,
+    key: string,
+    branches: ObjectId[],
+    __v: number,
+    id: string
+}
+
+
+/* ############################################################################# */
+/* ################################ Period ##################################### */
+/* ############################################################################# */
+export interface Period {
+    _id: string,
+    createdAt: string,
+    updatedAt: string
+    title: string,
+    branch: string,
+    company: string,
+    period: ProductPeriod,
+    __v: number
+}
+
+
 /* ############################################################################# */
 /* ################################# Forms ##################################### */
 /* ############################################################################# */
@@ -482,6 +539,11 @@ export interface ComplementForm {
     branch?: string,
     company?: string,
     complement?: string | unknown
+}
+
+export interface CloningMenuForm {
+    originalBranch: string,
+	destinationBranch: string
 }
 
 export interface CategoryForm {
@@ -571,13 +633,14 @@ export interface CreateCompanyForm {
 }
 
 export interface CreateBranchForm {
+    id?: string,
     active: boolean,
     name: string,
     slug: string,
     phone: string,
     whatsappPhone: string,
     email: string,
-    franchise: string,
+    franchise: string | undefined | unknown,
     street: string,
     neighborhood: string,
     complement: string,
@@ -630,31 +693,26 @@ export interface CreateBranchForm {
     pixType: string,
 }
 
+export interface CreatePeriodForm {
+    id?: string,
+    branch?: string,
+    company?: string,
+    monday: PeriodTimeForm[],
+    tuesday: PeriodTimeForm[],
+    wednesday: PeriodTimeForm[],
+    thursday: PeriodTimeForm[],
+    friday: PeriodTimeForm[],
+    saturday: PeriodTimeForm[],
+    sunday: PeriodTimeForm[]
+}
+
 export interface CreateUserForm {
-    active: boolean,
-    birthDate: string,
-    cpf?: string,
-    cnpj?: string,
-    email: string,
-    gender: string,
     name: string,
+    email: string,
     password: string,
-    phone: string,
-    externalId: string,
     role: string,
-    photo: Image[],
-    superuser: boolean,
-    noAuthUser: boolean,
-    street: string,
-    number: string
-    neighborhood: string,
-    postalCode: string,
-    complement: string,
-    reference: string,
-    city: string,
-    state: string,
-    latitude: string,
-    longitude: string,
+    companies?: string[],
+    branches?: string[],
 }
 
 export interface TotemUserForm {
@@ -704,6 +762,16 @@ export interface CreateBranchFormOptions {
     printing: boolean,
     orders: boolean,
     payments: boolean
+}
+
+export interface CreatePeriodFormOptions {
+    monday: boolean,
+    tuesday: boolean,
+    wednesday: boolean,
+    thursday: boolean,
+    friday: boolean,
+    saturday: boolean,
+    sunday: boolean
 }
 
 export interface CreateCompanyFormOptions {
@@ -780,9 +848,21 @@ export interface CategoryAndComplementCardLoadings {
     product: boolean
 }
 
+export interface UserModalLoadings {
+    page: boolean
+    companies: boolean,
+    branches: boolean
+}
+
 export interface BranchSubMenuOptions {
     itens: boolean,
     config: boolean
+}
+
+export interface PeriodModals {
+    create: boolean,
+    edit: boolean,
+    delete: boolean
 }
 
 /* ############################################################################# */
@@ -865,7 +945,7 @@ export interface Credit {
     isCredit: boolean
 }
 
-export interface Period {
+export interface ProductPeriod {
     sunday: PeriodDay[],
     saturday: PeriodDay[],
     friday: PeriodDay[],
@@ -876,6 +956,7 @@ export interface Period {
 }
 
 export interface PeriodDay {
+    disabled?: string,
     _id: string,
     to: string,
     from: string
@@ -943,6 +1024,7 @@ export interface Items {
     price: number,
     note: null,
     relatedOffer: null,
+    name: string,
     title: string,
     costPrice: number,
     code: string,
@@ -1026,4 +1108,50 @@ export interface ConsumeTypes {
     text: string,
     icon: string,
     id: ObjectId
+}
+
+export interface PeriodTimeForm {
+    _id: string,
+    disabled: boolean,
+    to: string,
+    from: string
+}
+
+export interface SelectOptions {
+    value: string,
+    label: string
+}
+
+export interface TotemChargeHistory {
+    id: string,
+    to: string,
+    from: string,
+    status: string,
+    createdAt: string,
+    details: {
+        categoriesCloned: number,
+        productsCloned: number,
+        complementsCloned: number,
+        executedAt: string
+    },
+    time: string
+}
+
+export interface OptionType {
+    value: string;
+    label: string;
+}
+
+export interface TotemEfficiency {
+    name: string,
+    branch: string,
+    totems: TotemEfficiencyData[]
+}
+
+export interface TotemEfficiencyData {
+    name: string,
+    active: boolean,
+    email: string,
+    totem: string,
+    efficiency: number
 }

@@ -15,7 +15,7 @@ interface ITitleProps {
 export const Container = styled.div`
     display: flex;
     flex-direction: column;
-    height: 800px;
+    height: 850px;
 `;
 
 export const Header = styled.div`
@@ -72,7 +72,7 @@ export const General = styled.div`
     *-----------------------------
     */
     grid-template-columns: 100%;
-    grid-template-rows: 8% 18% 53% 15% 6%;
+    grid-template-rows: 8% 15% 56% 15% 6%;
     grid-template-areas: "row1" "row2" "row3" "row4" "row5";
 `;
 
@@ -87,7 +87,8 @@ export const GeneralRow1 = styled.div`
 
 export const GeneralRow2 = styled.div`
     grid-area: row2;
-    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
     border-radius: 0.25rem;
     border: 3px solid #F3F4F6;
     padding: 0.5rem;
@@ -95,7 +96,7 @@ export const GeneralRow2 = styled.div`
 
 export const GeneralRow3 = styled.div`
     grid-area: row3;
-    //background-color: green;
+    overflow: scroll;
     margin-top: 10px;
     border-radius: 0.25rem;
     border: 3px solid #F3F4F6;
@@ -119,5 +120,4 @@ export const GeneralRow5 = styled.div`
     flex-direction: row;
     justify-content: flex-end;
     position: relative;
-    margin-top: 10px;
 `;

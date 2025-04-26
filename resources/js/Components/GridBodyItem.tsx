@@ -1,11 +1,11 @@
 interface IGridBodyItemProps {
     children?: React.ReactNode,
+    padding?: string,
     className?: string,
-    border?: boolean
 }
 
-const GridBodyItem: React.FC<IGridBodyItemProps> = ({ children, className, border }) => (
-    <div className={`py-[15px] flex justify-center bg-gray-200 ${border && "border-b-2 border-b-gray-400"} items-center + ${className}`}>
+const GridBodyItem: React.FC<IGridBodyItemProps> = ({ children, padding, className }) => (
+    <div className={`${padding} text-center ${className}`}>
         {children}
     </div>
 )

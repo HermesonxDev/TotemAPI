@@ -43,7 +43,7 @@ const InputWithLabel: React.FC<IInputWithLabelProps> = ({
 
     return (
         <Container width={width} height={height} margin={margin}>
-            <Label isFocused={type === 'color' ? true : isFocused || value !== ''}>
+            <Label isFocused={type === 'color' || type === 'time' || isFocused || value !== ''}>
                 {label}
             </Label>
 

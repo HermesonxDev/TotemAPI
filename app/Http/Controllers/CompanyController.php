@@ -395,15 +395,15 @@ class CompanyController extends Controller {
                     'customerNameFormat' => $company->settingsTotem['customerNameFormat'] ?? 0,
                     'consumeTypeBackground' => $company->settingsTotem['consumeTypeBackground'] ?? "",
                     'selectPaymentBackground' => $company->settingsTotem['selectPaymentBackground'] ?? "",
-                    // 'consumeTypes' => array_map(function ($consumeType) {
-                    //     return [
-                    //             "_id" => (string) $consumeType['id'],
-                    //             "value" => $consumeType['value'],
-                    //             "active" => $consumeType['active'],
-                    //             "text" => $consumeType['text'],
-                    //             "icon" => $consumeType['icon']
-                    //         ];
-                    //     }, $company->settingsTotem['consumeTypes']) ?? [],
+                    'consumeTypes' => array_map(function ($consumeType) {
+                        return [
+                                "_id" => (string) $consumeType['id'] ?? "",
+                                "value" => $consumeType['value'] ?? 0,
+                                "active" => $consumeType['active'] ?? false,
+                                "text" => $consumeType['text'] ?? "",
+                                "icon" => $consumeType['icon'] ?? ""
+                            ];
+                        }, $company->settingsTotem['consumeTypes']) ?? [],
                     'imageSize' => $company->settingsTotem['imageSize'] ?? "",
                     'allowPrinting' => $company->settingsTotem['allowPrinting'] ?? false,
                     'screenOrientation' => $company->settingsTotem['screenOrientation'] ?? "",

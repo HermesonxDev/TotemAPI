@@ -4,7 +4,7 @@ import StoresMenuPanel from '@/Components/StoresMenuPanel';
 import StoresPanel from '@/Components/StoresPanel';
 import StoresTotemPanel from '@/Components/StoresTotemPanel';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Branch, Company, Product, TotemUser } from '@/utils/interfaces';
+import { Branch, Company, Product, TotemEfficiency, TotemUser } from '@/utils/interfaces';
 import { Head } from '@inertiajs/react';
 
 interface IOperationalStatusProps {
@@ -13,7 +13,7 @@ interface IOperationalStatusProps {
     activatedLink: string,
     branches: Branch[],
     products: Product[],
-    totems: TotemUser[]
+    totemEfficiency: TotemEfficiency[]
 }
 
 export default function OperationalStatus({
@@ -22,7 +22,7 @@ export default function OperationalStatus({
     activatedLink,
     branches,
     products,
-    totems
+    totemEfficiency
 }: IOperationalStatusProps) {
 
     return (
@@ -43,8 +43,8 @@ export default function OperationalStatus({
                     <div className="flex flex-col gap-5">
 
                         <div className="flex flex-col">
-                            <h2 className="text-3xl font-medium">Status Operacional</h2>
-                            <p>Confira o que está Acontecendo em suas Lojas neste exato momento.</p>
+                            <h2 className="text-3xl font-bold">Status Operacional</h2>
+                            <p>Confira o que está acontecendo em suas Lojas neste exato momento.</p>
                         </div>
 
                         <StatusOperationalMenu
@@ -69,11 +69,11 @@ export default function OperationalStatus({
                             />
                         }
 
-                        {totems && totems.length > 0 &&
+                        {totemEfficiency && totemEfficiency.length > 0 &&
                             <StoresTotemPanel
                                 company={company}
                                 branch={branch}
-                                totems={totems}
+                                totemEfficiency={totemEfficiency}
                             />
                         }
                     </div>

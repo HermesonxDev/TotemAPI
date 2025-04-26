@@ -14,5 +14,5 @@ export const ToggleSelector = styled(Switch).attrs<ReactSwitchProps>(() => ({
     onColor: "#f7931b",
     offColor: "#e44c4e"
 }))<ReactSwitchProps>`
-    margin: ${({ margin }) => margin || '0 7px'};
+    margin: '0 7px';
 `;

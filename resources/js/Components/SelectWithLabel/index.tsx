@@ -3,27 +3,18 @@ import { Container, Label, Select } from './styles';
 
 interface ISelectWithLabelProps {
   label: string,
-  value?: string | number,
+  value: string | number,
   required?: boolean,
   onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void,
   options: { value: string; label: string }[],
-  width?: string,
-  height?: string
+  width?: string
 }
 
-const SelectWithLabel: React.FC<ISelectWithLabelProps> = ({
-    label,
-    value,
-    required,
-    onChange,
-    options,
-    width,
-    height
-}) => {
+const SelectWithLabel: React.FC<ISelectWithLabelProps> = ({ label, value, required, onChange, options, width }) => {
   const [isFocused, setIsFocused] = useState(false);
 
   return (
-    <Container width={width} height={height}>
+    <Container width={width}>
       <Label isFocused={isFocused || value !== ''}>{label}</Label>
       <Select
         value={value}

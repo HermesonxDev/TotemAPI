@@ -1,6 +1,4 @@
-import { useEffect, useState } from "react"
 import Modal from "../Modal"
-import ObjectId from 'bson-objectid';
 
 import {
     Container,
@@ -18,6 +16,11 @@ import {
 import { Order } from "@/utils/interfaces"
 import handleLocationType from "@/utils/handleLocationType";
 import formatMoney from "@/utils/formatMoney";
+import GridContainer from "../GridContainer";
+import GridHeaderRow from "../GridHeaderRow";
+import GridHeaderItem from "../GridHeaderItem";
+import GridBodyRow from "../GridBodyRow";
+import GridBodyItem from "../GridBodyItem";
 
 interface IOrderDetailModalProps {
     show: boolean,
@@ -57,39 +60,64 @@ const OrderDetailModal: React.FC<IOrderDetailModalProps> = ({
                     </GeneralRow2>
 
                     <GeneralRow3>
-                        <div className="grid grid-cols-[1fr_1fr_1fr_1fr_1fr]">
-                            <div className="contents font-bold">
-                                <div className="p-[10px] flex justify-center">Código PDV</div>
-                                <div className="p-[10px] flex justify-center">Produto</div>
-                                <div className="p-[10px] flex justify-center">Quantidade</div>
-                                <div className="p-[10px] flex justify-center">Preço</div>
-                                <div className="p-[10px] flex justify-center">Total</div>
-                            </div>
+                        <GridContainer gap="4">
 
-                            {detailedOrder?.items.map(item => (
-                                <div className="contents overflow-x-scroll">
-                                    <div className="py-[15px] flex justify-center bg-gray-200 border-b-2 border-b-gray-400 items-center">
-                                        {item.code}
-                                    </div>
+                            <GridHeaderRow
+                                gridCols="grid-cols-[1fr_2.5fr_1fr_1fr_1fr]"
+                                background="gray-800"
+                            >
+                                <GridHeaderItem padding="p-2">Cód PDV</GridHeaderItem>
+                                <GridHeaderItem padding="p-2">Produto</GridHeaderItem>
+                                <GridHeaderItem padding="p-2">Quantidade</GridHeaderItem>
+                                <GridHeaderItem padding="p-2">Preço</GridHeaderItem>
+                                <GridHeaderItem padding="p-2">Total</GridHeaderItem>
+                            </GridHeaderRow>
 
-                                    <div className="py-[15px] flex justify-center bg-gray-200 border-b-2 border-b-gray-400 items-center">
-                                        {item.title}
-                                    </div>
+                            {detailedOrder?.items.map((item, index) => (
+                                <div key={index} className="flex flex-col bg-white shadow rounded-md border border-gray-300 overflow-hidden">
 
-                                    <div className="py-[15px] flex justify-center bg-gray-200 border-b-2 border-b-gray-400 items-center">
-                                        {item.quantity}
-                                    </div>
+                                    <GridBodyRow
+                                        gridCols="grid-cols-[1fr_2.5fr_1fr_1fr_1fr]"
+                                        background="gray-100"
+                                    >
+                                        <GridBodyItem padding="p-3">{item.code}</GridBodyItem>
+                                        <GridBodyItem padding="p-3" className="text-center break-words leading-tight">
+                                            {item.title || item.name}
+                                        </GridBodyItem>
+                                        <GridBodyItem padding="p-3">{item.quantity}</GridBodyItem>
+                                        <GridBodyItem padding="p-3">{formatMoney(item.price)}</GridBodyItem>
+                                        <GridBodyItem padding="p-3">{formatMoney(item.price * item.quantity)}</GridBodyItem>
+                                    </GridBodyRow>
 
-                                    <div className="py-[15px] flex justify-center bg-gray-200 border-b-2 border-b-gray-400 items-center">
-                                        {formatMoney(item.price)}
-                                    </div>
+                                    {item.complements?.length > 0 && (
+                                        <>
+                                            <GridBodyRow
+                                                gridCols="grid-cols-[1fr_2.5fr_1fr_1fr_1fr]"
+                                                background="gray-200"
+                                            >
+                                                <GridBodyItem padding="p-2">Cód PDV</GridBodyItem>
+                                                <GridBodyItem padding="p-2">Complemento</GridBodyItem>
+                                                <GridBodyItem padding="p-2">Quantidade</GridBodyItem>
+                                                <GridBodyItem padding="p-2">Preço</GridBodyItem>
+                                                <GridBodyItem padding="p-2">Total</GridBodyItem>
+                                            </GridBodyRow>
 
-                                    <div className="py-[15px] flex justify-center bg-gray-200 border-b-2 border-b-gray-400 items-center">
-                                        {formatMoney(item.price * item.quantity)}
-                                    </div>
+                                            {item.complements.map((complement, index) => (
+                                                <div key={index} className="grid grid-cols-[1fr_2.5fr_1fr_1fr_1fr] bg-white text-sm border-t border-gray-200">
+                                                    <GridBodyItem padding="p-3">{complement.code}</GridBodyItem>
+                                                    <GridBodyItem padding="p-3" className="text-center break-words leading-tight">
+                                                        {complement.title || complement.name}
+                                                    </GridBodyItem>
+                                                    <GridBodyItem padding="p-3">{complement.quantity}</GridBodyItem>
+                                                    <GridBodyItem padding="p-3">{formatMoney(complement.price)}</GridBodyItem>
+                                                    <GridBodyItem padding="p-3">{formatMoney(complement.price * complement.quantity)}</GridBodyItem>
+                                                </div>
+                                            ))}
+                                        </>
+                                    )}
                                 </div>
                             ))}
-                        </div>
+                        </GridContainer>
                     </GeneralRow3>
 
                     <GeneralRow4>

@@ -7,7 +7,8 @@ export interface User {
     createdAt: string,
     updatedAt: string,
     branches: string[],
-    companies: string[]
+    companies: string[],
+    roles: string[]
 }
 
 export type PageProps<

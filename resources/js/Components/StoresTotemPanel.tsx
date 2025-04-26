@@ -3,18 +3,24 @@ import {
     Company,
     Product,
     StoresTotemPanelFormOptions,
+    TotemEfficiency,
     TotemUser
 } from "@/utils/interfaces"
 import ProgressBar from "./progressBar"
-import { useState } from "react"
+import React, { useState } from "react"
+import progressiveBarColor from "@/utils/progressiveBarColor"
 
 interface IStoresTotemPanelProps {
     company: Company,
     branch: Branch,
-    totems: TotemUser[]
+    totemEfficiency: TotemEfficiency[],
 }
 
-const StoresTotemPanel: React.FC<IStoresTotemPanelProps> = ({ company, branch, totems }) => {
+const StoresTotemPanel: React.FC<IStoresTotemPanelProps> = ({
+    company,
+    branch,
+    totemEfficiency,
+}) => {
 
     const [filters, setFilters] = useState<StoresTotemPanelFormOptions>({
         name: "",
@@ -33,24 +39,27 @@ const StoresTotemPanel: React.FC<IStoresTotemPanelProps> = ({ company, branch, t
         });
     };
 
-    const filteredTotems = totems.filter(totem => {
-        if (filters.name && !totem.name.toLowerCase().includes(filters.name.toLowerCase())) {
-            return false;
-        }
-        
-        return true;
-    });
+    const filteredTotemEfficiency = totemEfficiency.filter(totem => {
+        const search = filters.name.toLowerCase();
+    
+        const matchLoja = totem.name.toLowerCase().includes(search);
+        const matchTotem = totem.totems.some(t => t.name.toLowerCase().includes(search));
+    
+        return !filters.name || matchLoja || matchTotem;
+    });    
 
-    let activeTotems = 0;
-    let inactiveTotems = 0;
+    const { active, inactive, total } = filteredTotemEfficiency.reduce((acc, item) => {
+        item.totems.forEach(totem => {
+            if (totem.active) {
+                acc.active += 1;
+            } else {
+                acc.inactive += 1;
+            }
 
-    totems.forEach(totem => {
-        if (totem.active === true) {
-            activeTotems += 1
-        } else {
-            inactiveTotems += 1
-        }
-    });
+            acc.total += 1
+        });
+        return acc;
+    }, { active: 0, inactive: 0, total: 0})    
 
     return (
         <div className="flex flex-col gap-5">
@@ -61,16 +70,16 @@ const StoresTotemPanel: React.FC<IStoresTotemPanelProps> = ({ company, branch, t
                     <div className="flex flex-col gap-5 justify-between bg-gray-100 rounded p-3">
                         <ProgressBar
                             label="Totems Ativos"
-                            current={activeTotems}
-                            max={totems.length}
+                            current={active}
+                            max={total}
                             color="#4CAF50"
                             type="opened"
                         />
                         
                         <ProgressBar
                             label="Totems Inativos"
-                            current={inactiveTotems}
-                            max={totems.length}
+                            current={inactive}
+                            max={total}
                             color="#FB923C"
                             type="closed"
                         />
@@ -85,7 +94,7 @@ const StoresTotemPanel: React.FC<IStoresTotemPanelProps> = ({ company, branch, t
                             <input
                                 type="text"
                                 onChange={(e) => handleChangeFilters(e, 'name')}
-                                placeholder="Busca por Nome"
+                                placeholder="Busca por Loja"
                                 className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
                             />
 
@@ -97,7 +106,7 @@ const StoresTotemPanel: React.FC<IStoresTotemPanelProps> = ({ company, branch, t
                         
                         <div className="flex flex-row justify-between items-center px-1">
                             <span className="text-sm text-gray-500">
-                                {filteredTotems.length} de {totems.length} Totems encontradas
+                                {filteredTotemEfficiency.length} de {total} Totems encontradas
                             </span>
                             {(filters.name) && (
                                 <button
@@ -109,28 +118,51 @@ const StoresTotemPanel: React.FC<IStoresTotemPanelProps> = ({ company, branch, t
                             )}
                         </div>
 
-                        <div className="grid grid-cols-[1fr_1fr_1fr] w-[99%] bg-gray-200 mx-auto rounded overflow-y-scroll">
+                        <div className="grid grid-cols-[1.5fr_1fr_0.5fr_2fr_2fr] w-[99%] bg-gray-200 mx-auto rounded overflow-y-scroll">
                             <div className="contents font-bold border-b-2 border-b-gray-400">
+                                <div className="p-[10px] flex justify-center">Loja</div>
                                 <div className="p-[10px] flex justify-center">Totem</div>
                                 <div className="p-[10px] flex justify-center">Status</div>
                                 <div className="p-[10px] flex justify-center">Email</div>
+                                <div className="p-[10px] flex justify-center">Funcionamento (%)</div>
                             </div>
 
-                            {filteredTotems.map(totem => 
-                                <div className="contents" key={totem.id}>
-                                    <div className="py-[15px] flex justify-center bg-gray-200 items-center border-b-2 border-b-gray-400">
-                                        {totem.name}
-                                    </div>
+                            {filteredTotemEfficiency.map(totemEfficiency => {
 
-                                    <div className="py-[15px] flex justify-center bg-gray-200 items-center border-b-2 border-b-gray-400">
-                                        {totem.active ? "Ativo" : "Inativo"}
-                                    </div>
+                                const totemData = totemEfficiency.totems;
 
-                                    <div className="py-[15px] flex justify-center bg-gray-200 items-center border-b-2 border-b-gray-400">
-                                        {totem.email}
-                                    </div>
-                                </div>
-                            )}
+                                return (
+                                    <React.Fragment key={totemEfficiency.branch}>
+                                        {totemData.map((totem, idx) => (
+                                            <React.Fragment key={totem.totem || idx}>
+                                                <div className={`py-[15px] flex justify-center bg-gray-200 border-b-2 border-b-gray-400`}>
+                                                    {totemEfficiency.name}
+                                                </div>
+
+                                                <div className="py-[15px] flex justify-center bg-gray-200 border-b-2 border-b-gray-400">
+                                                    {totem.name}
+                                                </div>
+
+                                                <div className="py-[15px] flex justify-center bg-gray-200 border-b-2 border-b-gray-400">
+                                                    {totem.active ? "Ativo" : "Inativo"}
+                                                </div>
+
+                                                <div className="py-[15px] flex justify-center bg-gray-200 border-b-2 border-b-gray-400">
+                                                    {totem.email}
+                                                </div>
+
+                                                <div className="py-[15px] flex justify-center bg-gray-200 border-b-2 border-b-gray-400 w-full">
+                                                    <ProgressBar
+                                                        current={totem.efficiency}
+                                                        max={100}
+                                                        color={progressiveBarColor(totem.efficiency)}
+                                                    />
+                                                </div>
+                                            </React.Fragment>
+                                        ))}
+                                    </React.Fragment>
+                                );
+                            })}
                         </div>
                     </div>
                 </div>

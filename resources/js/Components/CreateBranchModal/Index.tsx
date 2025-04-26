@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import Modal from "../Modal"
 import ObjectId from 'bson-objectid';
 import { usePage } from '@inertiajs/react';
@@ -57,7 +57,6 @@ import {
     ImagesRow1,
     ImagesRow,
     ImagesRow7,
-    GeneralRow13,
     TotemConfigRow7,
 } from "./styles"
 
@@ -79,7 +78,8 @@ interface ICreateBranchModalProps {
 
 const CreateBranchModal: React.FC<ICreateBranchModalProps> = ({ show, onClose }) => {
 
-    const user = usePage().props.auth.user;
+    const { props } = usePage()
+    const company = props.company as Company
 
     const MAX_IMAGES = {
         splashTotemImages: 5,
@@ -89,8 +89,6 @@ const CreateBranchModal: React.FC<ICreateBranchModalProps> = ({ show, onClose })
     }
 
     const [loading, setLoading] = useState<boolean>(false)
-    const [loadingCompanies, setLoadingCompanies] = useState<boolean>(false)
-    const [companies, setCompanies] = useState<Company[]>([])
     const [saveData, setSaveData] = useState<boolean>(false)
 
     const [formState, setFormState] = useState<CreateBranchForm>({
@@ -100,7 +98,7 @@ const CreateBranchModal: React.FC<ICreateBranchModalProps> = ({ show, onClose })
         phone: '',
         whatsappPhone: '',
         email: '',
-        franchise: '',
+        franchise: company?.id,
         street: '',
         neighborhood: '',
         complement: '',
@@ -152,6 +150,66 @@ const CreateBranchModal: React.FC<ICreateBranchModalProps> = ({ show, onClose })
         pixKey: '',
         pixType: '',
     })
+
+    // const [formState, setFormState] = useState<CreateBranchForm>({
+    //     active: true,
+    //     name: "Unidade Teste",
+    //     slug: "unidade-teste",
+    //     phone: "85999247660",
+    //     whatsappPhone: "85999247660",
+    //     email: "hermesonsantos@berp.com.br",
+    //     franchise: "6441ae9a491d9eca5be7d146",
+    //     street: "Aveledo",
+    //     neighborhood: "Messejana",
+    //     complement: "Muro Rosa",
+    //     number: "669",
+    //     cep: "60871-210",
+    //     city: "Fortaleza",
+    //     state: "Ceará",
+    //     latitude: "-3.8362731",
+    //     longitude: "-38.5005203",
+    //     storeInfo: "Essa Loja é de fachada, na verdade eu lavo dinheiro nela",
+    //     adminPassword: "@@Rqqo231i",
+    //     serialNumber: "f97a4cb4-6f2d-4a9b-bf9d-9fc2f1e7dc1f",
+    //     controllerID: "1",
+    //     plugPagActivationKey: "545635776",
+    //     openFreezerBtn: true,
+    //     activeMicroMarket: true,
+    //     askForClientCPF: true,
+    //     askForClientPassword: true,
+    //     askForClientPhone: true,
+    //     allowPrinting: true,
+    //     paymentLock: true,
+    //     memberShipMode: true,
+    //     allowDelivery: true,
+    //     whatsappBtn: true,
+    //     whatsappMessage: "Oi, tu quer comprar o que?",
+    //     splashTotemImages: [],
+    //     bannerHeaderTotemImages: [],
+    //     bannerHeaderWebImages: [],
+    //     bannerHeaderAppImages: [],
+    //     automaticPrinting: true,
+    //     normalizePrinting: true,
+    //     htmlPrinting: true,
+    //     isOnlinePaymentDisabled: true,
+    //     quantityPrintingCopies: "2",
+    //     quantityPrintingColumns: "40",
+    //     serviceFee: "10",
+    //     minPrice: "100",
+    //     useMinPriceOnDelivery: true,
+    //     schedulingOrders: true,
+    //     minQuantitySO: "10",
+    //     maxQuantitySO: "20",
+    //     takeAwayOrders: true,
+    //     minQuantityTAO: "10",
+    //     maxQuantityTAO: "20",
+    //     money: true,
+    //     online: true,
+    //     pix: true,
+    //     pixDestinatary: "Eu",
+    //     pixKey: "manda-ai-@rrombado",
+    //     pixType: "static"
+    // })
 
     const [menuOptions, setMenuOptions] = useState<CreateBranchFormOptions>({
         general: true,
@@ -385,27 +443,6 @@ const CreateBranchModal: React.FC<ICreateBranchModalProps> = ({ show, onClose })
         }
     };
 
-
-    useEffect(() => {
-        const fetchCompanies = async () => {
-            try {
-                setLoadingCompanies(true);
-
-                const response = await api.get('/api/company');
-                const allCompanies: Company[] = response.data.data;
-
-                const filteredCompanies = allCompanies.filter(company => user.companies.includes(company._id));
-                setCompanies(filteredCompanies);
-            } catch (error) {
-                console.error("Erro ao buscar empresas:", error);
-            } finally {
-                setLoadingCompanies(false);
-            }
-        };
-
-        fetchCompanies();
-    }, [user.companies]);
-
     const closeForm = () => {
         if (saveData) {
             onClose()
@@ -620,54 +657,33 @@ const CreateBranchModal: React.FC<ICreateBranchModalProps> = ({ show, onClose })
                             </GeneralRow5>
 
                             <GeneralRow6>
-                                {loadingCompanies ? (
-                                    <p>Carregando franquias...</p>
-                                ) : (
-                                    <select
-                                        className="w-full h-[63%] rounded-md border-gray-300 text-gray-700"
-                                        value={formState.franchise}
-                                        onChange={(e) => handleChangeOrder(e, "franchise")}
-                                    >
-                                        <option value="" disabled hidden>Franquia</option>
-                                        {companies.length > 0 ? (
-                                            companies.map(company => (
-                                                <option key={company._id} value={company._id}>{company.name}</option>
-                                            ))
-                                        ) : (
-                                            <option disabled>Sem franquias disponíveis</option>
-                                        )}
-                                    </select>
-                                )}
-                            </GeneralRow6>
-
-                            <GeneralRow7>
                                 <InputWithLabel
                                     label="Rua"
                                     value={formState.street}
                                     height="70%"
                                     onChange={(e) => handleChangeOrder(e, 'street')}
                                 />
-                            </GeneralRow7>
+                            </GeneralRow6>
 
-                            <GeneralRow8>
+                            <GeneralRow7>
                                 <InputWithLabel
                                     label="Bairro"
                                     value={formState.neighborhood}
                                     height="70%"
                                     onChange={(e) => handleChangeOrder(e, 'neighborhood')}
                                 />
-                            </GeneralRow8>
+                            </GeneralRow7>
 
-                            <GeneralRow9>
+                            <GeneralRow8>
                                 <InputWithLabel
                                     label="Complemento"
                                     value={formState.complement}
                                     height="70%"
                                     onChange={(e) => handleChangeOrder(e, 'complement')}
                                 />
-                            </GeneralRow9>
+                            </GeneralRow8>
 
-                            <GeneralRow10>
+                            <GeneralRow9>
                                 <InputWithLabel
                                     label="Número"
                                     value={formState.number}
@@ -681,9 +697,9 @@ const CreateBranchModal: React.FC<ICreateBranchModalProps> = ({ show, onClose })
                                     height="70%"
                                     onChange={(e) => handleChangeOrder(e, 'cep')}
                                 />
-                            </GeneralRow10>
+                            </GeneralRow9>
 
-                            <GeneralRow11>
+                            <GeneralRow10>
                                 <InputWithLabel
                                     label="Cidade"
                                     value={formState.city}
@@ -697,9 +713,9 @@ const CreateBranchModal: React.FC<ICreateBranchModalProps> = ({ show, onClose })
                                     height="70%"
                                     onChange={(e) => handleChangeOrder(e, 'state')}
                                 />
-                            </GeneralRow11>
+                            </GeneralRow10>
 
-                            <GeneralRow12>
+                            <GeneralRow11>
                                 <InputWithLabel
                                     label="Latitude"
                                     value={formState.latitude}
@@ -713,16 +729,16 @@ const CreateBranchModal: React.FC<ICreateBranchModalProps> = ({ show, onClose })
                                     height="70%"
                                     onChange={(e) => handleChangeOrder(e, 'longitude')}
                                 />
-                            </GeneralRow12>
+                            </GeneralRow11>
 
-                            <GeneralRow13>
+                            <GeneralRow12>
                                 <div className="absolute bottom-0 right-0">
                                     {!loading
                                         ? <Button type="submit">Salvar</Button>
                                         : <Loading width="50px" />
                                     }
                                 </div>
-                            </GeneralRow13>
+                            </GeneralRow12>
                         </General>
                     }
 
@@ -767,7 +783,7 @@ const CreateBranchModal: React.FC<ICreateBranchModalProps> = ({ show, onClose })
 
                             <TotemConfigRow5>
                                 <InputWithLabel
-                                    label="Informações Adicionais"
+                                    label="Informações Adicionais da Loja"
                                     value={formState.storeInfo}
                                     height="70%"
                                     onChange={(e) => handleChangeOrder(e, 'storeInfo')}

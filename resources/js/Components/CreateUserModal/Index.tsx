@@ -1,13 +1,10 @@
 import { useEffect, useState } from "react"
 import Modal from "../Modal"
-import ObjectId from 'bson-objectid';
-import { usePage } from '@inertiajs/react';
 
 import {
     Body,
     Container,
     Header,
-    Menu,
     General,
     Button,
     Title,
@@ -18,35 +15,14 @@ import {
     GeneralRow5,
     GeneralRow6,
     GeneralRow7,
-    GeneralRow8,
-    GeneralRow9,
-    GeneralRow10,
-    Photo,
-    PhotoRow1,
-    PhotoRow2,
-    PhotoRow3,
-    AditionalInformation,
-    AditionalInformationRow1,
-    AditionalInformationRow2,
-    AditionalInformationRow3,
-    AditionalInformationRow4,
-    ProductImage,
-    AditionalInformationRow5,
-    AditionalInformationRow6,
-    AditionalInformationRow7,
-    AditionalInformationRow8,
-    AditionalInformationRow9,
+    GeneralRow8
 } from "./styles"
 
-import Toggle from "../Toggle"
 import InputWithLabel from "../InputWithLabel"
-import {
-    CreateUserForm,
-    CreateUserFormOptions,
-    Image as ImageInterface
-} from "@/utils/interfaces"
+import { Branch, Company, CreateUserForm, OptionType, UserModalLoadings } from "@/utils/interfaces"
 import api from "@/Services/api";
 import Loading from "../Loading";
+import AsyncMultiSelect from "../AsyncMultiSelect"
 
 interface ICreateUserModalProps {
     show: boolean,
@@ -55,192 +31,94 @@ interface ICreateUserModalProps {
 
 const CreateUserModal: React.FC<ICreateUserModalProps> = ({ show, onClose }) => {
 
-    const MAX_IMAGES = {
-        photo: 1
-    }
-
-    const [loading, setLoading] = useState<boolean>(false)
     const [saveData, setSaveData] = useState<boolean>(false)
 
     const [formState, setFormState] = useState<CreateUserForm>({
-        active: true,
-        birthDate: '',
-        cpf: '',
-        cnpj: '',
-        email: '',
-        gender: '',
         name: '',
+        email: '',
         password: '',
-        phone: '',
-        externalId: '',
         role: '',
-        superuser: false,
-        noAuthUser: false,
-        photo: [],
-        latitude: '',
-        longitude: '',
-        postalCode: '',
-        reference: '',
-        complement: '',
-        state: '',
-        city: '',
-        neighborhood: '',
-        street: '',
-        number: ''
+        companies: [],
+        branches: []
     })
 
-    const [menuOptions, setMenuOptions] = useState<CreateUserFormOptions>({
-        general: true,
-        photo: false,
-        aditionalInformations: false
+    const [loading, setLoading] = useState<UserModalLoadings>({
+        page: false,
+        companies: false,
+        branches: false
     })
 
-    const handleMenuClick = (option: keyof CreateUserFormOptions) => {
-        setMenuOptions({
-            general: false,
-            photo: false,
-            aditionalInformations: false,
-            [option]: true
+    const [companies, setCompanies] = useState<OptionType[]>([])
+    const [branches, setBranches] = useState<OptionType[]>([])
+
+    const handleLoadings = (option: keyof UserModalLoadings, value: boolean) => {
+        setLoading({
+            page: false,
+            companies: false,
+            branches: false,
+            [option]: value
         })
     }
 
-    const handleToggle = (value: boolean, key: keyof CreateUserForm) => {
-        setFormState((prev) => ({
-            ...prev,
-            [key]: value
-        }));
-    };
+    const getCompanies = async (inputValue: string): Promise<OptionType[]> => {
+        const response = await api('/list/companies');
+        const data = response.data.data as Company[]
 
+        return data.map(company => ({
+            value: company._id,
+            label: company.name,
+        }))
+    }
 
     const handleChangeOrder = (
         event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>,
-        key: keyof CreateUserForm
+        key: keyof CreateUserForm,
+        overwrite?: boolean
     ) => {
-        const { value, checked, files } = event.target as HTMLInputElement;
-
+        const { value } = event.target as HTMLInputElement | HTMLSelectElement;
+      
         setFormState((prev) => {
-            if (key === "photo" && files) {
-                const newImages: ImageInterface[] = Array.from(files).map(file => ({
-                    photo: URL.createObjectURL(file),
-                    preferredType: "photo",
-                    _id: new ObjectId().toString(),
-                    active: true,
-                    isNew: true,
-                }));
+          const prevValue = prev[key];
 
-                return {
-                    ...prev,
-                    photo: [...prev.photo, ...newImages]
-                };
+          if (Array.isArray(prevValue)) {
+            if (overwrite) {
+              return {
+                ...prev,
+                [key]: [value],
+              };
+            } else {
+              const updatedArray = prevValue.includes(value) ? prevValue : [...prevValue, value];
+      
+              return {
+                ...prev,
+                [key]: updatedArray,
+              };
             }
-
-            const updatedState = { ...prev, [key]: value };
-
-            return updatedState;
+          }
+      
+          return {
+            ...prev,
+            [key]: value,
+          };
         });
-    };
-
-    const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>, fieldName: keyof typeof MAX_IMAGES, index: number) => {
-        const file = event.target.files?.[0];
-        if (!file) return;
-
-        const newImage: ImageInterface = {
-            photo: URL.createObjectURL(file),
-            preferredType: "photo",
-            _id: new ObjectId().toString(),
-            active: true,
-            isNew: true,
-        };
-
-        setFormState((prev) => {
-            const updatedImages = [...prev[fieldName]];
-            updatedImages[index] = newImage;
-            return { ...prev, [fieldName]: updatedImages };
-        });
-    };
-
-
-    const handleAddImageSlot = (fieldName: keyof typeof MAX_IMAGES) => {
-        setFormState((prev) => {
-            if (prev[fieldName].length < MAX_IMAGES[fieldName]) {
-                return {
-                    ...prev,
-                    [fieldName]: [
-                        ...prev[fieldName],
-                        {
-                            photo: "",
-                            preferredType: "photo",
-                            _id: new ObjectId().toString(),
-                            active: true,
-                            isNew: true
-                        },
-                    ],
-                };
-            }
-            return prev;
-        });
-    };
-
-
-    const handleRemoveImage = (fieldName: keyof typeof MAX_IMAGES, index: number) => {
-        setFormState((prev) => {
-            const updatedImages = prev[fieldName].filter((_, i) => i !== index);
-            return { ...prev, [fieldName]: updatedImages };
-        });
-    };
-
-
-    const generateSlug = (text: string) => {
-        return text
-            .toLowerCase()
-            .normalize("NFD")
-            .replace(/[\u0300-\u036f]/g, "")
-            .replace(/\s+/g, "-")
-            .replace(/[^a-z0-9-]/g, "")
-            .replace(/-+/g, "-")
-            .trim();
-    };
+    };      
 
     const handleFormState = async (event: React.FormEvent<HTMLFormElement>) => {
         try {
             event.preventDefault();
-            setLoading(true);
+            handleLoadings('page', true)
 
             const formData = new FormData();
 
-            Object.keys(formState).forEach((key) => {
-                const value = formState[key as keyof typeof formState];
-
-                if (typeof value === "boolean" || typeof value === "number") {
+            Object.entries(formState).forEach(([key, value]) => {
+                if (Array.isArray(value)) {
+                    value.forEach(item => {
+                        formData.append(`${key}[]`, item);
+                    });
+                } else {
                     formData.append(key, String(value));
-                } else if (typeof value === "string") {
-                    formData.append(key, value);
                 }
-            });
-
-            const imageFields = [
-                "photo"
-            ] as const;
-
-            for (const field of imageFields) {
-                const images = formState[field];
-
-                for (const [index, image] of images.entries()) {
-                    if (image.isNew) {
-                        if (image.photo instanceof File) {
-                            formData.append(`${field}[${index}]`, image.photo, image.photo.name);
-                        } else if (typeof image.photo === "string" && image.photo.startsWith("blob:")) {
-                            const response = await fetch(image.photo);
-                            const blob = await response.blob();
-                            const file = new File([blob], `image-${index}.jpg`, { type: blob.type });
-
-                            formData.append(`${field}[${index}]`, file, file.name);
-                        } else {
-                            console.warn(`A imagem ${index} de ${field} não é um File nem um Blob válido!`, image.photo);
-                        }
-                    }
-                }
-            }
+            });            
 
             await api.post('/create/user', formData, {
                 headers: {
@@ -250,7 +128,7 @@ const CreateUserModal: React.FC<ICreateUserModalProps> = ({ show, onClose }) => 
 
             window.location.reload();
         } catch (err: unknown) {
-            setLoading(false);
+            handleLoadings('page', false)
             console.error("Erro no handleFormState: ", err);
         }
     };
@@ -260,34 +138,56 @@ const CreateUserModal: React.FC<ICreateUserModalProps> = ({ show, onClose }) => 
             onClose()
         } else {
             setFormState({
-                active: true,
-                birthDate: '',
-                cpf: '',
-                cnpj: '',
-                email: '',
-                gender: '',
                 name: '',
+                email: '',
                 password: '',
-                phone: '',
-                externalId: '',
                 role: '',
-                superuser: false,
-                noAuthUser: false,
-                photo: [],
-                latitude: '',
-                longitude: '',
-                postalCode: '',
-                reference: '',
-                complement: '',
-                state: '',
-                city: '',
-                neighborhood: '',
-                street: '',
-                number: ''
+                companies: [],
+                branches: []
             })
             onClose()
         }
     }
+
+    useEffect(() => {
+        const fetchCompanies = async () => {
+            handleLoadings('companies', true)
+            handleLoadings('branches', true)
+
+            const response = await api.get('/list/companies');
+            const data = response.data.data as Company[]
+            setCompanies(data.map(company => ({
+                value: company._id,
+                label: company.name,
+            })))
+
+            handleLoadings('companies', false)
+            handleLoadings('branches', false)
+        }
+
+        const fecthBranches = async (company: string) => {
+            handleLoadings('branches', true)
+
+            const response = await api.get(`/list/branches?%24limit=50&company=${company}`)
+            const data = response.data.data as Branch[]
+
+            setBranches(data.map(company => ({
+                value: company?._id || '',
+                label: company.name,
+            })))
+
+            handleLoadings('branches', false)
+        }
+
+        if (formState.role === 'manager') {
+            fetchCompanies()
+        }
+
+        if (formState.role === 'manager' && formState.companies && formState.companies[0]) {
+            fecthBranches(formState.companies[0])
+        }
+    }, [formState.role, formState.companies])
+
     return (
         <Modal show={show} onClose={closeForm}>
             <Container>
@@ -301,323 +201,117 @@ const CreateUserModal: React.FC<ICreateUserModalProps> = ({ show, onClose }) => 
                 </Header>
 
                 <Body className="bg-gray-100" onSubmit={handleFormState} encType="multipart/form-data">
-                    <Menu>
-                        <Button
-                            type="button"
-                            onClick={() => handleMenuClick('general')}
-                            backgroundColor={menuOptions.general ? "black" : "unset"}
-                            color={menuOptions.general ? "white" : "black"}
-                        >Geral</Button>
+                    <General>
+                        <GeneralRow1>
+                            <div></div>
 
-                        <Button
-                            type="button"
-                            onClick={() => handleMenuClick('photo')}
-                            backgroundColor={menuOptions.photo ? "black" : "unset"}
-                            color={menuOptions.photo ? "white" : "black"}
-                        >Foto</Button>
+                            <div className="flex items-center gap-1">
+                                <input
+                                    type="checkbox"
+                                    checked={saveData}
+                                    onChange={() => setSaveData(!saveData)}
+                                /> Salvar Informações
+                            </div>
+                        </GeneralRow1>
 
-                        <Button
-                            type="button"
-                            onClick={() => handleMenuClick('aditionalInformations')}
-                            backgroundColor={menuOptions.aditionalInformations ? "black" : "unset"}
-                            color={menuOptions.aditionalInformations ? "white" : "black"}
-                        >Informações Adicionais</Button>
-                    </Menu>
+                        <GeneralRow2>
+                            <InputWithLabel
+                                label="Nome"
+                                value={formState.name}
+                                height="70%"
+                                onChange={(e) => handleChangeOrder(e, 'name')}
+                            />
+                        </GeneralRow2>
 
-                    {menuOptions.general &&
-                        <General>
-                            <GeneralRow1>
-                                <Toggle
-                                    checked={formState.active}
-                                    labelRight="Ativo"
-                                    margin="0 7px 0 0"
-                                    onChange={() => handleToggle(!formState.active, "active")}
+                        <GeneralRow3>
+                            <InputWithLabel
+                                label="Email"
+                                value={formState.email}
+                                height="70%"
+                                onChange={(e) => handleChangeOrder(e, 'email')}
+                            />
+                        </GeneralRow3>
+
+                        <GeneralRow4>
+                            <InputWithLabel
+                                label="Senha"
+                                value={formState.password}
+                                height="70%"
+                                type="password"
+                                onChange={(e) => handleChangeOrder(e, 'password')}
+                            />
+                        </GeneralRow4>
+
+                        <GeneralRow5>
+                            <select
+                                className="w-full h-[63%] rounded-md border-gray-300 text-gray-700"
+                                value={formState.role}
+                                onChange={(e) => handleChangeOrder(e, "role")}
+                            >
+                                <option value="" disabled hidden>Nivel de Usuário</option>
+                                <option value="admin">Administrador</option>
+                                <option value="consultant">Consultor</option>
+                                <option value="manager">Gerente</option>
+                            </select>
+                        </GeneralRow5>
+
+                        <GeneralRow6>
+                            {formState.role === 'consultant' &&
+                                <AsyncMultiSelect
+                                    loadData={getCompanies}
+                                    placeholder="Digite para buscar uma franquia"
+                                    defaultOptions={true}
+                                    onChange={(selectedOptions) =>
+                                        setFormState((prev) => ({
+                                          ...prev,
+                                          companies: selectedOptions.map(option => option.value)
+                                        }))
+                                    }                                      
                                 />
+                            }
 
-                                <div className="flex items-center gap-1">
-                                    <input
-                                        type="checkbox"
-                                        checked={saveData}
-                                        onChange={() => setSaveData(!saveData)}
-                                    /> Salvar Informações
-                                </div>
-                            </GeneralRow1>
-
-                            <GeneralRow2>
-                                <InputWithLabel
-                                    label="Nome"
-                                    value={formState.name}
-                                    height="70%"
-                                    onChange={(e) => handleChangeOrder(e, 'name')}
-                                />
-                            </GeneralRow2>
-
-                            <GeneralRow3>
-                                <InputWithLabel
-                                    label="Email"
-                                    value={formState.email}
-                                    height="70%"
-                                    onChange={(e) => handleChangeOrder(e, 'email')}
-                                />
-                            </GeneralRow3>
-
-                            <GeneralRow4>
-                                <InputWithLabel
-                                    label="Senha"
-                                    value={formState.password}
-                                    height="70%"
-                                    type="password"
-                                    onChange={(e) => handleChangeOrder(e, 'password')}
-                                />
-                            </GeneralRow4>
-
-                            <GeneralRow5>
-                                <InputWithLabel
-                                    label="Telefone"
-                                    value={formState.phone}
-                                    height="70%"
-                                    onChange={(e) => handleChangeOrder(e, 'phone')}
-                                />
-
-                                <InputWithLabel
-                                    label="Data de Nascimento"
-                                    value={formState.birthDate}
-                                    height="70%"
-                                    type="date"
-                                    onChange={(e) => handleChangeOrder(e, 'birthDate')}
-                                />
-                            </GeneralRow5>
-
-                            <GeneralRow6>
+                            {formState.role === 'manager' && !loading.companies &&
                                 <select
                                     className="w-full h-[63%] rounded-md border-gray-300 text-gray-700"
-                                    value={formState.gender}
-                                    onChange={(e) => handleChangeOrder(e, "gender")}
+                                    value={formState.companies}
+                                    onChange={(e) => handleChangeOrder(e, "companies", true)}
                                 >
-                                    <option value="" disabled hidden>Gênero</option>
-                                    <option value="male">Masculino</option>
-                                    <option value="female">Feminino</option>
+                                    <option value="" disabled hidden>Franquia</option>
+                                    {companies.map(company => (
+                                        <>
+                                            <option value={company.value}>{company.label}</option>
+                                        </>
+                                    ))}
                                 </select>
-                            </GeneralRow6>
+                            }
+                        </GeneralRow6>
 
-                            <GeneralRow7>
-                                <InputWithLabel
-                                    label="CPF"
-                                    value={formState.cpf}
-                                    height="70%"
-                                    onChange={(e) => handleChangeOrder(e, 'cpf')}
-                                />
-
-                                <InputWithLabel
-                                    label="CNPJ"
-                                    value={formState.cnpj}
-                                    height="70%"
-                                    onChange={(e) => handleChangeOrder(e, 'cnpj')}
-                                />
-                            </GeneralRow7>
-
-                            <GeneralRow8>
-                                <InputWithLabel
-                                    label="Código PDV"
-                                    value={formState.externalId}
-                                    height="70%"
-                                    onChange={(e) => handleChangeOrder(e, 'externalId')}
-                                />
-                            </GeneralRow8>
-
-                            <GeneralRow9>
+                        <GeneralRow7>
+                            {formState.role === 'manager' && !loading.branches &&
                                 <select
                                     className="w-full h-[63%] rounded-md border-gray-300 text-gray-700"
-                                    value={formState.role}
-                                    onChange={(e) => handleChangeOrder(e, "role")}
+                                    value={formState.branches}
+                                    onChange={(e) => handleChangeOrder(e, "branches", true)}
                                 >
-                                    <option value="" disabled hidden>Nivel de Usuário</option>
-                                    <option value="user">Usuário</option>
-                                    <option value="Admin">Administrador</option>
-                                    <option value="Owner">Dono</option>
-                                    <option value="Partner">Sócio</option>
-                                    <option value="Manager">Gerente</option>
+                                    <option value="" disabled hidden>Unidade</option>
+                                    {branches.map(branch => (
+                                        <>
+                                            <option value={branch.value}>{branch.label}</option>
+                                        </>
+                                    ))}
                                 </select>
-                            </GeneralRow9>
-
-                            <GeneralRow10>
-                                <div className="absolute bottom-0 right-0">
-                                    {!loading
-                                        ? <Button type="submit">Salvar</Button>
-                                        : <Loading width="50px" />
-                                    }
-                                </div>
-                            </GeneralRow10>
-                        </General>
-                    }
-
-                    {menuOptions.photo &&
-                        <Photo>
-                            <PhotoRow1>
-                                <Title>Adicione uma imagem (300KB - 3MB) para a Foto.</Title>
-                            </PhotoRow1>
-
-                            {formState.photo.map((image, index) => (
-                                <PhotoRow2>
-                                    <input
-                                        type="file"
-                                        accept="image/*"
-                                        className="border border-gray-400 rounded w-full"
-                                        onChange={(e) => handleImageUpload(e, "photo", index)}
-                                    />
-
-                                    {image.photo && (
-                                        <div className="flex flex-row gap-3 items-center">
-                                            <ProductImage
-                                                src={typeof image.photo === "string" ? image.photo : URL.createObjectURL(image.photo)}
-                                            />
-
-                                            <div className="flex flex-col gap-3">
-                                                <Toggle
-                                                    checked={image.active}
-                                                    labelRight="Ativo"
-                                                    margin="0 7px 0 0"
-                                                    onChange={() => {}}
-                                                />
-
-                                                <Button type="button" onClick={() => handleRemoveImage("photo", index)}>
-                                                    Remover
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    )}
-                                </PhotoRow2>
-                            ))}
-
-                            <PhotoRow3>
-                                {!loading
-                                    ? <>
-                                        {formState.photo.length < MAX_IMAGES.photo && (
-                                            <Button type="button" onClick={() => handleAddImageSlot("photo")}>
-                                                Adicionar Mais Uma Imagem
-                                            </Button>
-                                        )}
-
-                                        <Button type="submit">Salvar</Button>
-                                      </>
+                            }
+                        </GeneralRow7>
+                        
+                        <GeneralRow8>
+                            <div className="absolute bottom-0 right-0">
+                                {!loading.page
+                                    ? <Button type="submit">Salvar</Button>
                                     : <Loading width="50px" />
                                 }
-                            </PhotoRow3>
-                        </Photo>
-                    }
-
-                    {menuOptions.aditionalInformations &&
-                        <AditionalInformation>
-                            <AditionalInformationRow1>
-                                <Toggle
-                                    checked={formState.superuser}
-                                    labelRight="Super Usuário"
-                                    margin="0 7px 0 0"
-                                    onChange={() => handleToggle(!formState.superuser, "superuser")}
-                                />
-
-                                <Toggle
-                                    checked={formState.noAuthUser}
-                                    labelRight="Sem Autenticação"
-                                    margin="0 7px 0 0"
-                                    onChange={() => handleToggle(!formState.noAuthUser, "noAuthUser")}
-                                />
-                            </AditionalInformationRow1>
-
-                            <AditionalInformationRow2>
-                                <InputWithLabel
-                                    label="Rua"
-                                    value={formState.street}
-                                    height="70%"
-                                    onChange={(e) => handleChangeOrder(e, 'street')}
-                                />
-                            </AditionalInformationRow2>
-
-                            <AditionalInformationRow3>
-                                <InputWithLabel
-                                    label="Número"
-                                    value={formState.number}
-                                    height="70%"
-                                    onChange={(e) => handleChangeOrder(e, 'number')}
-                                />
-                            </AditionalInformationRow3>
-
-                            <AditionalInformationRow4>
-                                <InputWithLabel
-                                    label="Bairro"
-                                    value={formState.neighborhood}
-                                    height="70%"
-                                    onChange={(e) => handleChangeOrder(e, 'neighborhood')}
-                                />
-                            </AditionalInformationRow4>
-
-                            <AditionalInformationRow5>
-                                <InputWithLabel
-                                    label="CEP"
-                                    value={formState.postalCode}
-                                    height="70%"
-                                    onChange={(e) => handleChangeOrder(e, 'postalCode')}
-                                />
-                            </AditionalInformationRow5>
-
-                            <AditionalInformationRow6>
-                                <InputWithLabel
-                                    label="Complemento"
-                                    value={formState.complement}
-                                    height="70%"
-                                    onChange={(e) => handleChangeOrder(e, 'complement')}
-                                />
-
-                                <InputWithLabel
-                                    label="Referência"
-                                    value={formState.reference}
-                                    height="70%"
-                                    onChange={(e) => handleChangeOrder(e, 'reference')}
-                                />
-                            </AditionalInformationRow6>
-
-                            <AditionalInformationRow7>
-                                <InputWithLabel
-                                    label="Cidade"
-                                    value={formState.city}
-                                    height="70%"
-                                    onChange={(e) => handleChangeOrder(e, 'city')}
-                                />
-
-                                <InputWithLabel
-                                    label="Estado"
-                                    value={formState.state}
-                                    height="70%"
-                                    onChange={(e) => handleChangeOrder(e, 'state')}
-                                />
-                            </AditionalInformationRow7>
-
-                            <AditionalInformationRow8>
-                                <InputWithLabel
-                                    label="Latitude"
-                                    value={formState.latitude}
-                                    height="70%"
-                                    onChange={(e) => handleChangeOrder(e, 'latitude')}
-                                />
-
-                                <InputWithLabel
-                                    label="Longitude"
-                                    value={formState.longitude}
-                                    height="70%"
-                                    onChange={(e) => handleChangeOrder(e, 'longitude')}
-                                />
-                            </AditionalInformationRow8>
-
-                            <AditionalInformationRow9>
-                                <div className="absolute bottom-0 right-0">
-                                    {!loading
-                                        ? <Button type="submit">Salvar</Button>
-                                        : <Loading width="50px" />
-                                    }
-                                </div>
-                            </AditionalInformationRow9>
-                        </AditionalInformation>
-                    }
+                            </div>
+                        </GeneralRow8>
+                    </General>
                 </Body>
             </Container>
         </Modal>

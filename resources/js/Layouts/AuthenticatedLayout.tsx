@@ -3,10 +3,10 @@ import CreateCompanyModal from '@/Components/CreateCompanyModal/Index';
 import CreateTotemUserModal from '@/Components/CreateTotemUserModal/Index';
 import CreateUserModal from '@/Components/CreateUserModal/Index';
 import Dropdown from '@/Components/Dropdown';
-import DropdownButton from '@/Components/DropdownButton';
 import { Logo } from '@/Components/icons';
 import NavLink from '@/Components/NavLink';
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink';
+import contains from '@/utils/contains';
 import { LayoutModals } from '@/utils/interfaces';
 import { Link, usePage } from '@inertiajs/react';
 import { PropsWithChildren, ReactNode, useState } from 'react';
@@ -101,25 +101,31 @@ export default function Authenticated({
                                             Perfil
                                         </Dropdown.Link>
 
-                                        <DropdownButton
-                                            onClick={() => handleModalsClick('user', true)}
-                                            fontSize="text-sm"
-                                        > Cadastrar Usuário </DropdownButton>
+                                        {contains(user.roles, "admin") &&
+                                            <button
+                                                className="flex w-full items-start border-l-4 py-2 pe-4 ps-3 border-transparent text-gray-600 hover:border-gray-300 hover:bg-gray-50 hover:text-gray-800 focus:border-gray-300 focus:bg-gray-50 focus:text-gray-800 text-sm font-medium transition duration-150 ease-in-out focus:outline-none"
+                                                onClick={() => handleModalsClick('user', true)}
+                                            > Cadastrar Usuário </button>
+                                        }
 
-                                        <DropdownButton
-                                            onClick={() => handleModalsClick('totemUser', true)}
-                                            fontSize="text-sm"
-                                        > Cadastrar Usuário Totem</DropdownButton>
+                                        {contains(user.roles, "admin", "consultant") &&
+                                            <>
+                                                <button
+                                                    className="flex w-full items-start border-l-4 py-2 pe-4 ps-3 border-transparent text-gray-600 hover:border-gray-300 hover:bg-gray-50 hover:text-gray-800 focus:border-gray-300 focus:bg-gray-50 focus:text-gray-800 text-sm font-medium transition duration-150 ease-in-out focus:outline-none"
+                                                    onClick={() => handleModalsClick('totemUser', true)}
+                                                > Cadastrar Usuário Totem </button>
 
-                                        <DropdownButton
-                                            onClick={() => handleModalsClick('company', true)}
-                                            fontSize="text-sm"
-                                        > Cadastrar Franquia </DropdownButton>
+                                                <button
+                                                    className="flex w-full items-start border-l-4 py-2 pe-4 ps-3 border-transparent text-gray-600 hover:border-gray-300 hover:bg-gray-50 hover:text-gray-800 focus:border-gray-300 focus:bg-gray-50 focus:text-gray-800 text-sm font-medium transition duration-150 ease-in-out focus:outline-none"
+                                                    onClick={() => handleModalsClick('company', true)}
+                                                > Cadastrar Franquia </button>
 
-                                        <DropdownButton
-                                            onClick={() => handleModalsClick('branch', true)}
-                                            fontSize="text-sm"
-                                        > Cadastrar Unidade </DropdownButton>
+                                                <button
+                                                    className="flex w-full items-start border-l-4 py-2 pe-4 ps-3 border-transparent text-gray-600 hover:border-gray-300 hover:bg-gray-50 hover:text-gray-800 focus:border-gray-300 focus:bg-gray-50 focus:text-gray-800 text-sm font-medium transition duration-150 ease-in-out focus:outline-none"
+                                                    onClick={() => handleModalsClick('branch', true)}
+                                                > Cadastrar Unidade </button>
+                                            </>
+                                        }
 
                                         <Dropdown.Link href="/dashboard">
                                             Mudar Franquia
@@ -213,25 +219,31 @@ export default function Authenticated({
                                 Perfil
                             </ResponsiveNavLink>
 
-                            <DropdownButton
-                                onClick={() => handleModalsClick('user', true)}
-                                fontSize="text-sm"
-                            > Cadastrar Usuário </DropdownButton>
+                            {contains(user.roles, "admin") &&
+                                <button
+                                    className="flex w-full items-start border-l-4 py-2 pe-4 ps-3 border-transparent text-gray-600 hover:border-gray-300 hover:bg-gray-50 hover:text-gray-800 focus:border-gray-300 focus:bg-gray-50 focus:text-gray-800 text-sm font-medium transition duration-150 ease-in-out focus:outline-none"
+                                    onClick={() => handleModalsClick('user', true)}
+                                > Cadastrar Usuário </button>
+                            }
 
-                            <DropdownButton
-                                onClick={() => handleModalsClick('totemUser', true)}
-                                fontSize="text-sm"
-                            > Cadastrar Usuário Totem</DropdownButton>
+                            {contains(user.roles, "admin", "consultant") &&
+                                <>
+                                    <button
+                                        className="flex w-full items-start border-l-4 py-2 pe-4 ps-3 border-transparent text-gray-600 hover:border-gray-300 hover:bg-gray-50 hover:text-gray-800 focus:border-gray-300 focus:bg-gray-50 focus:text-gray-800 text-sm font-medium transition duration-150 ease-in-out focus:outline-none"
+                                        onClick={() => handleModalsClick('totemUser', true)}
+                                    > Cadastrar Usuário Totem </button>
 
-                            <DropdownButton
-                                onClick={() => handleModalsClick('company', true)}
-                                fontSize="text-sm"
-                            > Cadastrar Franquia </DropdownButton>
+                                    <button
+                                        className="flex w-full items-start border-l-4 py-2 pe-4 ps-3 border-transparent text-gray-600 hover:border-gray-300 hover:bg-gray-50 hover:text-gray-800 focus:border-gray-300 focus:bg-gray-50 focus:text-gray-800 text-sm font-medium transition duration-150 ease-in-out focus:outline-none"
+                                        onClick={() => handleModalsClick('company', true)}
+                                    > Cadastrar Franquia </button>
 
-                            <DropdownButton
-                                onClick={() => handleModalsClick('branch', true)}
-                                fontSize="text-sm"
-                            > Cadastrar Unidade </DropdownButton>
+                                    <button
+                                        className="flex w-full items-start border-l-4 py-2 pe-4 ps-3 border-transparent text-gray-600 hover:border-gray-300 hover:bg-gray-50 hover:text-gray-800 focus:border-gray-300 focus:bg-gray-50 focus:text-gray-800 text-sm font-medium transition duration-150 ease-in-out focus:outline-none"
+                                        onClick={() => handleModalsClick('branch', true)}
+                                    > Cadastrar Unidade </button>
+                                </>
+                            }
 
                             <ResponsiveNavLink href="/dashboard">
                                 Mudar Franquia

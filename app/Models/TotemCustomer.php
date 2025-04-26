@@ -4,11 +4,14 @@ namespace App\Models;
 
 use Carbon\Carbon;
 use MongoDB\Laravel\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class TotemCustomer extends Model
-{
+class Totemcustomer extends Model {
+
+    use HasFactory;
+    
     protected $connection = 'mongodb';
-    protected $collection = 'totemcustomers';
+    protected $collection = 'totemcustomer';
 
     public const CREATED_AT = 'createdAt';
     public const UPDATED_AT = 'updatedAt';

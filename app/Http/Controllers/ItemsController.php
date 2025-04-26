@@ -1,30 +1,30 @@
 <?php
 
 namespace App\Http\Controllers;
-
-use App\Models\Branch;
-use App\Models\Productcategory;
-use App\Models\Complementsgroup;
-use App\Models\Order;
-use App\Models\Company;
-use App\Models\Product;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
-use Inertia\Inertia;
+use Illuminate\Support\Facades\Log;
+use App\Models\Complementsgroup;
+use App\Models\Productcategory;
+use App\CentralLogics\Helpers;
+use Illuminate\Http\Request;
 use MongoDB\BSON\ObjectId;
+use App\Models\Company;
+use App\Models\Product;
+use App\Models\Branch;
+use App\Models\Order;
+use Inertia\Inertia;
 use Carbon\Carbon;
 
-class BranchMenuController extends Controller {
+class ItemsController extends Controller {
 
     public function index(Request $request, string $company, string $branch) {
-        $branchData = $this->getBranchData($branch);
-        $companyData = $this->getCompanyData($company);
+        $branch = $this->getBranchData($branch);
+        $company = $this->getCompanyData($company);
 
-        return Inertia::render('BranchMenu', [
-            'branch' => $branchData,
-            'company' => $companyData,
+        return Inertia::render('Items', [
+            'branch' => $branch,
+            'company' => $company,
             'categories' => [],
             'complements' => [],
             'orders' => [],
@@ -40,13 +40,29 @@ class BranchMenuController extends Controller {
     public function listBranches(Request $request, string $company) {
         $user = $request->user();
 
-        $company = Company::where('_id', $company)->first();
-        $branches = Branch::whereIn('_id', $user->branches ?? [])->get();
+        $company = $this->getCompanyData($company);
+
+        if (Helpers::hasAnyRole($user->roles, ['admin', 'consultant'])) {
+            $branches = Branch::where('company', new ObjectId($company->id))
+                              ->get();
+        } else {
+            $branches = Branch::whereIn('_id', $user->branches ?? [])
+                              ->get();
+        }
 
         return Inertia::render('BranchSelect', [
             'company' => $company,
-            'branches' => $branches
-        ]);
+            'branches' => $branches,
+            'categories' => [],
+            'complements' => [],
+            'orders' => [],
+            'categoryID' => '',
+            'categoriesProducts' => [],
+            'sortCategoryProducts' => [],
+            'categoriesComplements' => [],
+            'complementID' => '',
+            'complementsProducts' => [],
+        ], 200, [], JSON_UNESCAPED_SLASHES);
     }
 
     public function categories(Request $request, string $company, string $branch) {
@@ -57,7 +73,7 @@ class BranchMenuController extends Controller {
             ->sortBy('seq')
             ->values();
 
-        return Inertia::render('BranchMenu', [
+        return Inertia::render('Items', [
             'branch' => $branchData,
             'company' => $companyData,
             'categories' => $categories,
@@ -81,7 +97,7 @@ class BranchMenuController extends Controller {
             ->sortBy('seq')
             ->values();
 
-        return Inertia::render('BranchMenu', [
+        return Inertia::render('Items', [
             'branch' => $branchData,
             'company' => $companyData,
             'categories' => [],
@@ -111,7 +127,7 @@ class BranchMenuController extends Controller {
             ->sortBy('seq')
             ->values();
 
-        return Inertia::render('BranchMenu', [
+        return Inertia::render('Items', [
             'branch' => $branchData,
             'company' => $companyData,
             'categories' => $categories,
@@ -139,7 +155,7 @@ class BranchMenuController extends Controller {
             ->sortBy('seq')
             ->values();
 
-        return Inertia::render('BranchMenu', [
+        return Inertia::render('Items', [
             'branch' => $branchData,
             'company' => $companyData,
             'categories' => $categories,
@@ -167,7 +183,7 @@ class BranchMenuController extends Controller {
             ->sortBy('seq')
             ->values();
 
-        return Inertia::render('BranchMenu', [
+        return Inertia::render('Items', [
             'branch' => $branchData,
             'company' => $companyData,
             'categories' => [],
@@ -196,7 +212,7 @@ class BranchMenuController extends Controller {
             ->sortBy('seq')
             ->values();
 
-        return Inertia::render('BranchMenu', [
+        return Inertia::render('Items', [
             'branch' => $branchData,
             'company' => $companyData,
             'categories' => [],
@@ -214,6 +230,7 @@ class BranchMenuController extends Controller {
 
     public function order_panel(Request $request, string $company, string $branch) {
         $branchData = $this->getBranchData($branch);
+        $companyData = $this->getCompanyData($company);
 
         $branchId = new ObjectId($branch);
 
@@ -224,8 +241,9 @@ class BranchMenuController extends Controller {
             ->whereBetween('createdAt', [$startOfDay, $endOfDay])
             ->get();
 
-        return Inertia::render('BranchMenu', [
+        return Inertia::render('Items', [
             'branch' => $branchData,
+            'company' => $companyData,
             'categories' => [],
             'complements' => [],
             'orders' => $orders,
@@ -418,7 +436,8 @@ class BranchMenuController extends Controller {
                 'stock' => $product->stock,
                 'costprice' => $product->costprice,
                 'indoorPrices' => $product->indoorPrices,
-                'price' => $product->price
+                'price' => $product->price,
+                'complementGroupCategory' => (string) $product->complementGroupCategory ?? ''
             ];
         });
     }

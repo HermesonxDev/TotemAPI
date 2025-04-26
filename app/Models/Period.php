@@ -4,9 +4,12 @@ namespace App\Models;
 
 use Carbon\Carbon;
 use MongoDB\Laravel\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class Period extends Model
-{
+class Period extends Model {
+
+    use HasFactory;
+    
     protected $connection = 'mongodb';
     protected $collection = 'periods';
 
@@ -18,7 +21,8 @@ class Period extends Model
         'branch',
         'company',
         'period',
-        '__v'
+        '__v',
+        'deleted'
     ];
 
     public $timestamps = true;

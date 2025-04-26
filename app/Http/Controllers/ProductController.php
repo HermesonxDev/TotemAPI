@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use MongoDB\BSON\ObjectId;
 use App\Models\Product;
@@ -39,7 +40,7 @@ class ProductController extends Controller {
 
         try {
 
-            $maxSeq = Product::max('seq');
+            $maxSeq = Product::max('seq') ?? 0;
 
             $product = new Product();
 
@@ -215,7 +216,8 @@ class ProductController extends Controller {
                     'stock' => $product->stock,
                     'costprice' => $product->costprice,
                     'indoorPrices' => $product->indoorPrices,
-                    'price' => $product->price
+                    'price' => $product->price,
+                    'complementGroupCategory' => (string) $product->complementGroupCategory ?? ''
                 ];
             });
 
@@ -283,8 +285,12 @@ class ProductController extends Controller {
 
             if ($request->hasFile('images')) {
                 foreach ($request->file('images') as $image) {
-                    $path = Storage::disk('s3')->put($request->branch, $image);
-                    $existingImages[] =  env('AWS_URL') . "/" . $path;
+                    try {
+                        $path = Storage::disk('s3')->put($request->branch, $image);
+                        $existingImages[] =  env('AWS_URL') . "/" . $path;
+                    } catch (\Exception $e) {
+                        Log::error("Erro ao salvar imagem em $image: " . $e->getMessage());
+                    }
                 }
 
                 $product->sliderHeader = [
@@ -307,6 +313,41 @@ class ProductController extends Controller {
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Erro ao atualizar status',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function sold_out(Request $request) {
+
+        $validator = Validator::make($request->all(), [
+            'id'        => 'required|string',
+            'status'   => 'required' 
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        try {
+            $productID = new ObjectId($request->id);
+
+            $product = Product::where('_id', $productID)->first();
+
+            if(!$product) {
+                return response()->json(['error' => 'Produto não encontrado!'], 404);
+            }
+
+            $stock = $product->stock ?? [];
+            $stock['totemSoldOut'] = filter_var($request->status, FILTER_VALIDATE_BOOLEAN);
+            $product->stock = $stock;
+
+            $product->save();
+
+            return response()->json(['message' => 'Status de esgotado atualizado com sucesso!']);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Erro ao Marcar Produto como Esgotado!',
                 'error' => $e->getMessage()
             ], 500);
         }

@@ -61,7 +61,7 @@ export const Title = styled.h2<ITitleProps>`
 `;
 
 export const General = styled.div`
-    width: 73%;
+    width: 100%;
     height: 100%;
     display: grid;
     background-color: white;
@@ -105,8 +105,8 @@ export const General = styled.div`
     *-----------------------------
     */
     grid-template-columns: 100%;
-    grid-template-rows: 6% 8% 8% 8% 8% 8% 8% 8% 8% 30%;
-    grid-template-areas: "row1" "row2" "row3" "row4" "row5" "row6" "row7" "row8" "row9" "row10";
+    grid-template-rows: 6% 8% 8% 8% 9% 8% 8% 45%;
+    grid-template-areas: "row1" "row2" "row3" "row4" "row5" "row6" "row7" "row8";
 `;
 
 export const GeneralRow1 = styled.div`
@@ -130,36 +130,19 @@ export const GeneralRow4 = styled.div`
 
 export const GeneralRow5 = styled.div`
     grid-area: row5;
-    display: flex;
-    flex-direction: row;
-    gap: 5px;
+    margin-top: 9px;
 `;
 
 export const GeneralRow6 = styled.div`
     grid-area: row6;
-    display: flex;
-    align-items: center;
 `;
 
 export const GeneralRow7 = styled.div`
     grid-area: row7;
-    display: flex;
-    flex-direction: row;
-    gap: 5px;
 `;
 
 export const GeneralRow8 = styled.div`
     grid-area: row8;
-`;
-
-export const GeneralRow9 = styled.div`
-    grid-area: row9;
-    display: flex;
-    align-items: center;
-`;
-
-export const GeneralRow10 = styled.div`
-    grid-area: row10;
     display: flex;
     flex-direction: row;
     justify-content: flex-end;

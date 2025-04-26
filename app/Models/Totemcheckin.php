@@ -4,9 +4,12 @@ namespace App\Models;
 
 use Carbon\Carbon;
 use MongoDB\Laravel\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class Totemcheckin extends Model
-{
+class Totemcheckin extends Model {
+
+    use HasFactory;
+    
     protected $connection = 'mongodb';
     protected $collection = 'totemcheckins';
 
@@ -14,9 +17,10 @@ class Totemcheckin extends Model
     public const UPDATED_AT = 'updatedAt';
 
     protected $fillable = [
-        'beats',
+        'name',
         'company',
-        'name'
+        'beats',
+        'amount_totems'
     ];
 
     protected static function boot()

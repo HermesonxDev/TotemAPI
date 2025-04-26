@@ -1,21 +1,20 @@
 import { DragDropContext, Droppable } from "@hello-pangea/dnd"
 import { useEffect, useState } from "react"
 import CardDroppable from "./CardDroppable"
-import { Branch, Company, Complement } from "@/utils/interfaces"
+import { Complement } from "@/utils/interfaces"
 import api from "@/Services/api";
 import { Link, usePage } from "@inertiajs/react"
 import Loading from "./Loading";
 
 interface ISortComplementGroupProps {
-    sortedComplementsGroups: Complement[]
+    sortedComplementsGroups: Complement[],
+    branch: string,
+    company: string | undefined
 }
 
-const SortComplementGroup: React.FC<ISortComplementGroupProps> = ({ sortedComplementsGroups }) => {
+const SortComplementGroup: React.FC<ISortComplementGroupProps> = ({ sortedComplementsGroups, branch, company }) => {
 
     const { props } = usePage()
-
-    const branch = props.branch as Branch
-    const company = props.company as Company
 
     const [complementsGroups, setComplementGroups] = useState<Complement[]>([])
     const [loading, setLoading] = useState<boolean>(false)
@@ -41,7 +40,7 @@ const SortComplementGroup: React.FC<ISortComplementGroupProps> = ({ sortedComple
 
             const data = { complementsGroups: complementsGroups }
             await api.post(`/sort/complements-groups`, data)
-            window.location.href = `/company/${company ? company.id : ""}/branch/${branch ? branch.id : ""}/complements-categories`
+            window.location.href = `/company/${company}/branch/${branch}/complements-categories`
         } catch (error) {
             console.error("Erro no handleConfirmChange: ", error)
         }
@@ -91,7 +90,7 @@ const SortComplementGroup: React.FC<ISortComplementGroupProps> = ({ sortedComple
 
                         <Link
                             className="text-white bg-red-600 px-3 py-1 rounded"
-                            href={`/company/${company ? company.id : ""}/branch/${branch ? branch.id : ""}/products-complementsGroups`}
+                            href={`/company/${company}/branch/${branch}/complements-categories`}
                         >Fechar</Link>
                     </>
                     : <Loading

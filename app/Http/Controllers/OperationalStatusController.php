@@ -3,7 +3,10 @@
 namespace App\Http\Controllers;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Collection;
+use App\CentralLogics\Helpers;
 use Illuminate\Http\Request;
+use App\Models\Totemresume;
 use MongoDB\BSON\ObjectId;
 use App\Models\Totemuser;
 use App\Models\Company;
@@ -50,14 +53,62 @@ class OperationalStatusController extends Controller
     }
 
     public function totem(Request $request, string $company, string $branch) {
+
+        $user = $request->user();
+
         $branchData = $this->getBranchData($branch);
         $companyData = $this->getCompanyData($company);
 
         $companyID = new ObjectId($company);
 
-        $totemUsers = Totemuser::where('company', $companyID)
-            ->where('deleted', '<>', true)
-            ->get();
+        $resume = Totemresume::where('company', $companyID)
+                              ->where('deleted', '!=', true)
+                              ->orderBy('createdAt', 'desc')
+                              ->first();
+
+        if (Helpers::hasAnyRole($user->roles, ['admin', 'consultant'])) {
+            $totemUsers = Totemuser::where('company', $companyID)
+                                   ->where('deleted', '<>', true)
+                                   ->get();
+        } else {            
+            $totemUsers = Totemuser::whereIn('branch', $user->branches ?? [])
+                                   ->where('deleted', '<>', true)
+                                   ->get();
+        }
+
+        $efficiencyByBranch = collect($resume['efficiency'] ?? [])
+            ->map(fn($i) => (array) $i)
+            ->groupBy(function ($item) {
+                return (string) $item['branch'];
+            })
+            ->map(function ($group, $branchId) use ($totemUsers) {
+                $first = (array) $group->first();
+
+                $branchName = $first['name'] ?? '';
+                $branchObjectId = $first['branch'];
+
+                $totems = $group->map(function ($effItem) use ($totemUsers) {
+                    $matchedUser = $totemUsers->first(function ($user) use ($effItem) {
+                        return (string) $user->_id === (string) $effItem['totem'];
+                    });
+
+                    return [
+                        'name' => $matchedUser->name ?? '',
+                        'active' => $matchedUser->active ?? null,
+                        'email' => $matchedUser->email ?? null,
+                        'totem' => (string) $effItem['totem'] ?? '',
+                        'efficiency' => isset($effItem['efficiency']) 
+                            ? (float) str_replace('%', '', $effItem['efficiency']) 
+                            : null,
+                    ];
+                });
+
+                return [
+                    'name' => $branchName,
+                    'branch' => (string) $branchObjectId,
+                    'totems' => $totems,
+                ];
+            })->values();
 
         return Inertia::render('OperationalStatus', [
             'branch' => $branchData,
@@ -65,7 +116,7 @@ class OperationalStatusController extends Controller
             'activatedLink' => "totem",
             'branches' => [],
             'products' => [],
-            'totems' => $totemUsers
+            'totemEfficiency' => $efficiencyByBranch
         ], 200, [], JSON_UNESCAPED_SLASHES);
     }
 

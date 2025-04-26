@@ -42,7 +42,8 @@ return [
                 'database' => 'admin'
             ]
         ],
-
+        
+        //xuxu
         'sqlite' => [
             'driver' => 'sqlite',
             'url' => env('DB_URL'),
@@ -52,6 +53,12 @@ return [
             'busy_timeout' => null,
             'journal_mode' => null,
             'synchronous' => null,
+        ],
+
+        'sqlite_queue' => [
+            'driver' => 'sqlite',
+            'database' => database_path('queue.sqlite'),
+            'prefix' => '',
         ],
 
         'mysql' => [

@@ -35,8 +35,8 @@ class TotemUsersController extends Controller {
 
             $totemUser->active = filter_var($request->active, FILTER_VALIDATE_BOOLEAN);
             $totemUser->customerOf = "";
-            $totemUser->branch = $request->branch;
-            $totemUser->company = $request->company;
+            $totemUser->branch = new ObjectId($request->branch);
+            $totemUser->company = new ObjectId($request->company);
             $totemUser->email = $request->email;
             $totemUser->name = $request->name;
             $totemUser->maxConcurrentLogins = (integer) $request->maxConcurrentLogins;

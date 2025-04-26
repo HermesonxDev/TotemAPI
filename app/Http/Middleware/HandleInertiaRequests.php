@@ -35,7 +35,6 @@ class HandleInertiaRequests extends Middleware
                     'id' => $request->user()?->id,
                     'name' => $request->user()?->name,
                     'email' => $request->user()?->email,
-                    'password' => $request->user()?->password,
                     'createdAt' => $request->user()?->createdAt,
                     'updatedAt' => $request->user()?->updatedAt,
                     'branches' => $request->user()?->branches
@@ -43,7 +42,8 @@ class HandleInertiaRequests extends Middleware
                         : [],
                     'companies' => $request->user()?->companies
                         ? array_map(fn($company) => (string) $company, $request->user()->companies)
-                        : []
+                        : [],
+                    'roles' => $request->user()?->roles ?? []
                 ],
             ],
             'csrf_token' => csrf_token(),

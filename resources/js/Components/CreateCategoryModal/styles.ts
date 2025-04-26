@@ -4,6 +4,7 @@ interface IButtonProps {
     padding?: string,
     height?: string,
     margin?: string,
+    fontSize?: string,
     backgroundColor?: string,
     color?: string
 }
@@ -39,6 +40,7 @@ export const Button = styled.button<IButtonProps>`
     background-color: ${({ backgroundColor }) => backgroundColor || 'black'};
     color: ${({ color }) => color || 'white'};
     padding: ${({ padding }) => padding || '3px 10px'};
+    font-size: ${({ fontSize }) => fontSize || 'unset'};
     height: ${({ height }) => height || 'unset'};
     margin: ${({ margin }) => margin || 'unset'};
 `;
