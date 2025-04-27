@@ -1,18 +1,8 @@
-# Etapa 1: Builder de Assets
-FROM node:20-alpine as assets-builder
+# syntax=docker/dockerfile:1
 
-WORKDIR /app
+FROM php:8.2-fpm-alpine AS stage-1
 
-COPY package.json yarn.lock ./
-RUN yarn install
-
-COPY . .
-RUN yarn build
-
-# Etapa 2: Builder de PHP
-FROM php:8.2-fpm-alpine
-
-# Instala dependências do PHP
+# Atualiza os repositórios e instala dependências
 RUN apk add --no-cache \
     bash \
     curl \
@@ -29,30 +19,37 @@ RUN apk add --no-cache \
     supervisor \
     nginx \
     tzdata \
-    cron \
-    && docker-php-ext-install pdo pdo_mysql intl mbstring exif pcntl bcmath gd
+    dcron \
+ && docker-php-ext-install \
+    pdo \
+    pdo_mysql \
+    intl \
+    mbstring \
+    exif \
+    pcntl \
+    bcmath \
+    gd
 
-# Instala Composer
+# Copia o Composer do container oficial
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# Define diretório da aplicação
-WORKDIR /var/www/html
+# Define o diretório de trabalho
+WORKDIR /var/www
 
-# Copia código da aplicação
-COPY --from=assets-builder /app /var/www/html
+# Copia o restante dos arquivos da aplicação
+COPY . .
 
-# Permissões
-RUN chown -R www-data:www-data /var/www/html \
-    && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+# Garante que as pastas necessárias existem
+RUN mkdir -p /var/www/storage /var/www/bootstrap/cache
 
-# Instala dependências PHP
-RUN composer install --no-interaction --no-progress --prefer-dist --optimize-autoloader
+# Dá permissão nas pastas que o Laravel precisa
+RUN chmod -R 775 /var/www/storage /var/www/bootstrap/cache
 
-# Copia arquivos de configuração do supervisord para rodar o cron + php-fpm
-COPY ./docker/supervisord.conf /etc/supervisord.conf
+# Permissão extra: às vezes precisa dar permissão pro nginx ou php-fpm
+RUN chown -R www-data:www-data /var/www
 
-# Expõe porta do PHP-FPM
-EXPOSE 9000
+# Exponha a porta que o nginx vai usar
+EXPOSE 80
 
-# Entrypoint
-CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]
+# Comando padrão para o PHP-FPM (mas atenção: depois você precisa configurar o Nginx também)
+CMD ["php-fpm"]

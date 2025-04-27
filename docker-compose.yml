@@ -1,78 +1,41 @@
 version: '3.8'
+
 services:
-  assets-builder:
-    image: node:20-alpine
-    working_dir: /app
-    volumes:
-      - ./:/app
-    command: sh -c "yarn install && yarn build"
-  
-  laravel:
-    image: roberiopraciano/laravel-app:latest
+  laravel_app:
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: laravel_app
     volumes:
-       - ./:/var/www/html/
-    environment:
-      TZ: America/Fortaleza
-      PHP_TZ: America/Fortaleza
-      APP_ENV: production
-      APP_DEBUG: "true"
-      APP_TRUSTED_PROXIES: "*" 
-      APP_URL: https://dash.totem.hermesonxdev.app.br
-      VITE_ASSET_URL: https://dash.totem.hermesonxdev.app.br
-      ASSET_URL: https://dash.totem.hermesonxdev.app.br
-    command: >
-      sh -c "apt update && apt install -y cron &&
-      echo '* * * * * cd /var/www/html && /usr/local/bin/php artisan schedule:run >> /var/log/cron.log 2>&1' | crontab - &&
-      service cron start &&
-      composer install --no-interaction --no-progress &&
-      chown -R www-data:www-data /var/www/html/storage &&
-      chmod -R 775 /var/www/html/storage &&
-      touch /var/log/cron.log &&
-      tail -f /var/log/cron.log &
-      php-fpm"
+      - .:/var/www/html
+    networks:
+      - app-network
+    expose:
+      - 9000
+
+  nginx_webserver:
+    image: nginx:alpine
+    container_name: nginx_webserver
+    ports:
+      - "80:80"
+    volumes:
+      - .:/var/www/html
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
     depends_on:
-      - assets-builder
+      - laravel_app
     networks:
       - app-network
 
-  webserver:
-    image: nginx:alpine
-    container_name: webserver
-    restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
+  assets_builder:
+    image: node:20-alpine
+    container_name: assets_builder
+    working_dir: /var/www/html
     volumes:
-      - ./:/var/www/html
-      - ./nginx/conf.d:/etc/nginx/conf.d
-      - ./certbot/conf:/etc/letsencrypt
-      - ./certbot/www:/var/www/certbot
-    depends_on:
-      - laravel
-    networks:
-      - app-network
-  
-  certbot:
-    image: certbot/certbot
-    container_name: certbot
-    volumes:
-      - ./certbot/conf:/etc/letsencrypt
-      - ./certbot/www:/var/www/certbot
-    # Use a simpler command with no variable interpolation
-    command: >
-      certonly --webroot --webroot-path=/var/www/certbot 
-      --email hermesoninfo@gmail.com --agree-tos --no-eff-email
-      -d dash.totem.hermesonxdev.app.br
-      --keep-until-expiring
-    depends_on:
-      - webserver
+      - .:/var/www/html
+    command: sh -c "npm install && npm run dev"
     networks:
       - app-network
 
 networks:
   app-network:
     driver: bridge
-
-volumes:
-  appdata:
