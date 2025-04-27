@@ -2,7 +2,7 @@
 
 FROM php:8.2-fpm-alpine AS stage-1
 
-# Atualiza os repositórios e instala dependências
+# Instalando dependências
 RUN apk add --no-cache \
     bash \
     curl \
@@ -16,40 +16,46 @@ RUN apk add --no-cache \
     icu-dev \
     oniguruma-dev \
     git \
-    supervisor \
     nginx \
+    supervisor \
     tzdata \
+    nodejs \
+    npm \
     dcron \
- && docker-php-ext-install \
-    pdo \
-    pdo_mysql \
-    intl \
-    mbstring \
-    exif \
-    pcntl \
-    bcmath \
-    gd
+    && docker-php-ext-install \
+        pdo \
+        pdo_mysql \
+        intl \
+        mbstring \
+        exif \
+        pcntl \
+        bcmath \
+        gd
 
-# Copia o Composer do container oficial
+# Copiar o Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# Define o diretório de trabalho
+# Diretório de trabalho
 WORKDIR /var/www
 
-# Copia o restante dos arquivos da aplicação
+# Copiar tudo
 COPY . .
 
-# Garante que as pastas necessárias existem
-RUN mkdir -p /var/www/storage /var/www/bootstrap/cache
+# Corrigir configuração nginx
+COPY docker/nginx/conf.d/default.conf /etc/nginx/conf.d/default.conf
 
-# Dá permissão nas pastas que o Laravel precisa
+# Instalar dependências PHP
+RUN composer install --no-dev --optimize-autoloader
+
+# Gerar chave de APP
+RUN php artisan key:generate --force
+
+# Garantir permissões corretas
 RUN chmod -R 775 /var/www/storage /var/www/bootstrap/cache
+RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
 
-# Permissão extra: às vezes precisa dar permissão pro nginx ou php-fpm
-RUN chown -R www-data:www-data /var/www
-
-# Exponha a porta que o nginx vai usar
+# Expor porta 80
 EXPOSE 80
 
-# Comando padrão para o PHP-FPM (mas atenção: depois você precisa configurar o Nginx também)
+# Rodar supervisord que gerencia nginx + php-fpm
 CMD ["/usr/bin/supervisord", "-c", "/var/www/docker/supervisor.conf"]
