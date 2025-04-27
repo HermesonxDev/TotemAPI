@@ -38,14 +38,17 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 # Diretório de trabalho
 WORKDIR /var/www
 
-# Copiar tudo
+# Copiar todos os arquivos do projeto
 COPY . .
 
 # Corrigir configuração nginx
 COPY docker/nginx/conf.d/default.conf /etc/nginx/conf.d/default.conf
 
-# Instalar dependências PHP
+# Instalar dependências PHP (ignorando requisitos de plataforma tipo ext-mongodb)
 RUN composer install --no-dev --optimize-autoloader --ignore-platform-reqs
+
+# Criar um .env baseado no .env.example para conseguir gerar a chave APP_KEY
+RUN cp .env.example .env
 
 # Gerar chave de APP
 RUN php artisan key:generate --force
@@ -54,7 +57,7 @@ RUN php artisan key:generate --force
 RUN chmod -R 775 /var/www/storage /var/www/bootstrap/cache
 RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
 
-# Expor porta 80
+# Expor a porta 80
 EXPOSE 80
 
 # Rodar supervisord que gerencia nginx + php-fpm
