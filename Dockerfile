@@ -52,4 +52,4 @@ RUN chown -R www-data:www-data /var/www
 EXPOSE 80
 
 # Comando padrão para o PHP-FPM (mas atenção: depois você precisa configurar o Nginx também)
-CMD ["/usr/bin/supervisor", "-c", "/var/www/docker/supervisor.conf"]
+CMD ["/usr/bin/supervisord", "-c", "/var/www/docker/supervisor.conf"]
