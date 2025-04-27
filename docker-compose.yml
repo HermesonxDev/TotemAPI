@@ -8,7 +8,7 @@ services:
     command: sh -c "yarn install && yarn build"
   
   laravel:
-    image: ${DOCKERHUB_USERNAME}/laravel-app:latest
+    image: roberiopraciano/laravel-app:latest
     container_name: laravel_app
     volumes:
        - ./:/var/www/html/
@@ -18,9 +18,9 @@ services:
       APP_ENV: production
       APP_DEBUG: "true"
       APP_TRUSTED_PROXIES: "*" 
-      APP_URL: https://dash.berp.app.br
-      VITE_ASSET_URL: https://dash.berp.app.br
-      ASSET_URL: https://dash.berp.app.br
+      APP_URL: https://dash.totem.hermesonxdev.app.br
+      VITE_ASSET_URL: https://dash.totem.hermesonxdev.app.br
+      ASSET_URL: https://dash.totem.hermesonxdev.app.br
     command: >
       sh -c "apt update && apt install -y cron &&
       echo '* * * * * cd /var/www/html && /usr/local/bin/php artisan schedule:run >> /var/log/cron.log 2>&1' | crontab - &&
@@ -62,8 +62,8 @@ services:
     # Use a simpler command with no variable interpolation
     command: >
       certonly --webroot --webroot-path=/var/www/certbot 
-      --email admin@berp.app.br --agree-tos --no-eff-email
-      -d dash.berp.app.br
+      --email hermesoninfo@gmail.com --agree-tos --no-eff-email
+      -d dash.totem.hermesonxdev.app.br
       --keep-until-expiring
     depends_on:
       - webserver
