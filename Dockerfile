@@ -45,7 +45,7 @@ COPY . .
 COPY docker/nginx/conf.d/default.conf /etc/nginx/conf.d/default.conf
 
 # Instalar dependências PHP
-RUN composer install --no-dev --optimize-autoloader
+RUN composer install --no-dev --optimize-autoloader --ignore-platform-reqs
 
 # Gerar chave de APP
 RUN php artisan key:generate --force
