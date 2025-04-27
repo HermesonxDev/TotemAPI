@@ -1,8 +1,5 @@
 node_modules
 vendor
 .git
-storage
 .env
 docker-compose.yml
-Dockerfile
-# docker/
