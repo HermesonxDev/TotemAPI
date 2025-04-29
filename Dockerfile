@@ -3,7 +3,9 @@ FROM php:8.2-fpm AS backend
 # Instalar dependências
 RUN apt-get update && apt-get install -y \
     git unzip curl zip libpng-dev libonig-dev libxml2-dev libzip-dev \
-    npm nodejs nginx supervisor \
+    libssl-dev pkg-config gnupg2 gnupg npm nodejs nginx supervisor \
+    && pecl install mongodb \
+    && docker-php-ext-enable mongodb \
     && docker-php-ext-install pdo pdo_mysql mbstring zip bcmath
 
 # Instalar Composer
