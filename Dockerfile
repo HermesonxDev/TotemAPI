@@ -6,7 +6,7 @@ RUN apt-get update && apt-get install -y \
     libssl-dev pkg-config gnupg2 gnupg npm nodejs nginx supervisor \
     ca-certificates \
     && update-ca-certificates \
-    && pecl install mongodb \
+    && pecl install mongodb-1.18.0 \
     && docker-php-ext-enable mongodb \
     && docker-php-ext-install pdo pdo_mysql mbstring zip bcmath
 
