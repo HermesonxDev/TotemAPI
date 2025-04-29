@@ -1,11 +1,78 @@
 version: '3.8'
-
 services:
-  app:
-    build: .
+  assets-builder:
+    image: node:20-alpine
+    working_dir: /app
+    volumes:
+      - ./:/app
+    command: sh -c "yarn install && yarn build"
+  
+  laravel:
+    image: ${DOCKERHUB_USERNAME}/laravel-app:latest
+    container_name: laravel_app
+    volumes:
+       - ./:/var/www/html/
+    environment:
+      TZ: America/Fortaleza
+      PHP_TZ: America/Fortaleza
+      APP_ENV: production
+      APP_DEBUG: "true"
+      APP_TRUSTED_PROXIES: "*" 
+      APP_URL: https://dash.berp.app.br
+      VITE_ASSET_URL: https://dash.berp.app.br
+      ASSET_URL: https://dash.berp.app.br
+    command: >
+      sh -c "apt update && apt install -y cron &&
+      echo '* * * * * cd /var/www/html && /usr/local/bin/php artisan schedule:run >> /var/log/cron.log 2>&1' | crontab - &&
+      service cron start &&
+      composer install --no-interaction --no-progress &&
+      chown -R www-data:www-data /var/www/html/storage &&
+      chmod -R 775 /var/www/html/storage &&
+      touch /var/log/cron.log &&
+      tail -f /var/log/cron.log &
+      php-fpm"
+    depends_on:
+      - assets-builder
+    networks:
+      - app-network
+
+  webserver:
+    image: nginx:alpine
+    container_name: webserver
+    restart: unless-stopped
     ports:
       - "80:80"
-    environment:
-      APP_ENV: production
-      APP_DEBUG: false
-    restart: always
+      - "443:443"
+    volumes:
+      - ./:/var/www/html
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    depends_on:
+      - laravel
+    networks:
+      - app-network
+  
+  certbot:
+    image: certbot/certbot
+    container_name: certbot
+    volumes:
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    # Use a simpler command with no variable interpolation
+    command: >
+      certonly --webroot --webroot-path=/var/www/certbot 
+      --email admin@berp.app.br --agree-tos --no-eff-email
+      -d dash.berp.app.br
+      --keep-until-expiring
+    depends_on:
+      - webserver
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  appdata:

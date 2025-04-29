@@ -2,13 +2,13 @@ import noPhoto from "../../img/noPhoto.png"
 
 interface IGridBodyImageProps {
     src?: string,
-    className?: string
+    width?: string
 }
 
-const GridBodyImage: React.FC<IGridBodyImageProps> = ({ src, className }) => (
+const GridBodyImage: React.FC<IGridBodyImageProps> = ({ src, width }) => (
     <img
         src={src ? src : noPhoto}
-        className={`w-[35%] m-auto`}
+        className={`${width ? width : 'w-[35%]'} m-auto`}
     />
 )
 

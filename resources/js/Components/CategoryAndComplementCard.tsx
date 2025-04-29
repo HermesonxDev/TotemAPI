@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { usePage } from "@inertiajs/react";
-import { Category, Complement, CategoryAndComplementCardModals, Product, CategoryAndComplementCardLoadings } from "@/utils/interfaces";
+import { Category, Complement, CategoryAndComplementCardModals, Product, CategoryAndComplementCardLoadings, ComplementProducts } from "@/utils/interfaces";
 import GridContainer from "./GridContainer";
 import GridHeaderRow from "./GridHeaderRow";
 import GridHeaderItem from "./GridHeaderItem";
@@ -19,6 +19,7 @@ import SortProducts from "./SortProducts";
 import CreateProductModal from "./CreateProductModal/Index";
 import CreateComplementModal from "./CreateComplementModal/Index";
 import { useProduct } from "@/hooks/Product";
+import CreateComplementGroupCategoryModal from "./CreateComplementGroupCategoryModal/Index";
 
 interface ICategoryAndComplementCardProps {
     name: string,
@@ -27,7 +28,7 @@ interface ICategoryAndComplementCardProps {
     categories?: Category[],
     categoriesProducts?: Product[],
     sortCategoriesProducts?: Product[],
-    complementsProducts?: Product[],
+    complementsProducts?: ComplementProducts[],
     complementID?: string,
     complements?: Complement[],
     sortComplementsProducts?: Product[],
@@ -69,6 +70,7 @@ const CategoryAndComplementCard: React.FC<ICategoryAndComplementCardProps> = ({
         category: false,
         complementGroup: false,
         sortProducts: false,
+        complementGroupCategory: false,
         delete: false
     })
 
@@ -95,12 +97,13 @@ const CategoryAndComplementCard: React.FC<ICategoryAndComplementCardProps> = ({
             category: false,
             complementGroup: false,
             sortProducts: false,
+            complementGroupCategory: false,
             delete: false,
             [option]: value
         })
     }
 
-    const openEditProductModal = (productOrComplementID: string) => {
+    const openEditProductModal = (productOrComplementID: string, complementProductID?: string) => {
         let editedItem = null
 
         if (type === "category") {
@@ -108,7 +111,8 @@ const CategoryAndComplementCard: React.FC<ICategoryAndComplementCardProps> = ({
             handleModalsClick('editProduct', true)
 
         } else {
-            editedItem = complementsProducts?.find(complement => complement._id === productOrComplementID)
+            const complementGroup = complementsProducts?.find(complement => complement.id === complementProductID)
+            editedItem = complementGroup?.products.find(complement => complement.id === productOrComplementID)
             handleModalsClick('editComplement', true)
         }
 
@@ -127,7 +131,12 @@ const CategoryAndComplementCard: React.FC<ICategoryAndComplementCardProps> = ({
         setEditedComplementGroup(editedComplementGroup || null)
     }
 
-    const openDeleteModal = (productOrCategoryOrComplementGroupID: string | undefined, url: string, actionType: string) => {
+    const openDeleteModal = (
+        productOrCategoryOrComplementGroupID: string | undefined,
+        url: string,
+        actionType: string,
+        complementProductID?: string
+    ) => {
         let deletedEntity = null
 
         if (actionType === "Product") {
@@ -136,7 +145,8 @@ const CategoryAndComplementCard: React.FC<ICategoryAndComplementCardProps> = ({
             }
 
             if (type === "complement") {
-                deletedEntity = complementsProducts?.find(complement => complement._id === productOrCategoryOrComplementGroupID)
+                const complementGroup = complementsProducts?.find(complement => complement.id === complementProductID)
+                deletedEntity = complementGroup?.products.find(complement => complement._id === productOrCategoryOrComplementGroupID)
             }
         }
 
@@ -245,13 +255,6 @@ const CategoryAndComplementCard: React.FC<ICategoryAndComplementCardProps> = ({
 
                         <Link
                             preserveState
-                            href={`/company/${company}/branch/${branch}/complements-categories/sort-items/${complementID}`}
-                            className="text-white bg-black px-3 py-1 rounded"
-                            onClick={() => handleLoadingsClick('page', true)}
-                        >Ordenar Produtos</Link>
-
-                        <Link
-                            preserveState
                             href={`/company/${company}/branch/${branch}/complements-categories/${complementID}`}
                             className="text-white bg-black px-3 py-1 rounded"
                             onClick={() => handleLoadingsClick('page', true)}
@@ -291,7 +294,7 @@ const CategoryAndComplementCard: React.FC<ICategoryAndComplementCardProps> = ({
                                 ) : (
                                     <Toggle
                                         checked={categoryProduct.active}
-                                        onChange={() => handleToggle(categoryProduct._id, !categoryProduct.active, 'product')}
+                                        onChange={() => handleToggle(categoryProduct._id, !categoryProduct.active, 'status')}
                                         labelRight={categoryProduct.active ? "Ativo" : "Inativo"}
                                     />
                                 )}
@@ -360,74 +363,108 @@ const CategoryAndComplementCard: React.FC<ICategoryAndComplementCardProps> = ({
 
             {type === "complement" && complementID === complementIDFromURL && (!sortComplementsProducts || sortComplementsProducts.length === 0) && !loading.page &&
                 <GridContainer gap="3" marginTop="3">
-                    <GridHeaderRow
-                        gridCols="grid-cols-[0.5fr_1fr_1fr_1fr_1fr_1fr_1fr]"
-                        background="gray-800"
-                    >
-                        <GridHeaderItem padding="p-2">Imagem</GridHeaderItem>
-                        <GridHeaderItem padding="p-2">Código PDV</GridHeaderItem>
-                        <GridHeaderItem padding="p-2">Nome</GridHeaderItem>
-                        <GridHeaderItem padding="p-2">Status</GridHeaderItem>
-                        <GridHeaderItem padding="p-2">Disponivel</GridHeaderItem>
-                        <GridHeaderItem padding="p-2">Preço</GridHeaderItem>
-                        <GridHeaderItem padding="p-2">Ações</GridHeaderItem>
-                    </GridHeaderRow>
+                    {complementsProducts?.map((complementProduct) => {
 
-                    {complementsProducts?.map((complementProduct) => (
-                        <GridBodyRow
-                            key={complementProduct._id}
-                            gridCols="grid-cols-[0.5fr_1fr_1fr_1fr_1fr_1fr_1fr]"
-                            background="gray-200"
-                        >
-                            <GridBodyImage src={complementProduct.staticImage[0]?.photo} />
-                            <GridBodyItem padding="py-[10px]" className="flex justify-center items-center">{complementProduct.code}</GridBodyItem>
-                            <GridBodyItem padding="py-[10px]" className="flex justify-center items-center">{complementProduct.name}</GridBodyItem>
+                        const products = complementProduct.products
 
-                            <GridBodyItem padding="py-[10px]" className="flex justify-center items-center">
-                                {loadings[complementProduct._id]?.status ? (
-                                    <p>{loadings[complementProduct._id].status}</p>
-                                ) : (
-                                    <Toggle
-                                        checked={complementProduct.active}
-                                        onChange={() => handleToggle(complementProduct._id, !complementProduct.active, 'status')}
-                                        labelRight={complementProduct.active ? "Ativo" : "Inativo"}
-                                    />
-                                )}
-                            </GridBodyItem>
+                        return (
+                            <> 
+                                <GridHeaderRow
+                                    gridCols="grid-cols-[0.5fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr]"
+                                    background="gray-800"
+                                >
+                                    <GridHeaderItem padding="p-2">Imagem</GridHeaderItem>
+                                    <GridHeaderItem padding="p-2">Código PDV</GridHeaderItem>
+                                    <GridHeaderItem padding="p-2">Nome</GridHeaderItem>
+                                    <GridHeaderItem padding="p-2">Grupo</GridHeaderItem>
+                                    <GridHeaderItem padding="p-2">Status</GridHeaderItem>
+                                    <GridHeaderItem padding="p-2">Disponivel</GridHeaderItem>
+                                    <GridHeaderItem padding="p-2">Preço</GridHeaderItem>
+                                    <GridHeaderItem padding="p-2">Ações</GridHeaderItem>
+                                </GridHeaderRow>
 
-                            <GridBodyItem padding="py-[10px]" className="flex justify-center items-center">
-                                {loadings[complementProduct._id]?.soldOut ? (
-                                    <p>{loadings[complementProduct._id].soldOut}</p>
-                                ) : (
-                                    <Toggle
-                                        checked={complementProduct.stock.totemSoldOut}
-                                        onChange={() => handleToggle(complementProduct._id, !complementProduct.stock.totemSoldOut, 'soldOut')}
-                                        labelRight="Esgotado"
-                                    />
-                                )}
-                            </GridBodyItem>
+                                {products.map(product => (
+                                    <GridBodyRow
+                                        key={product.id}
+                                        gridCols="grid-cols-[0.5fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr]"
+                                        background="gray-200"
+                                        className="mx-5"
+                                    >
+                                        <GridBodyImage src={product.staticImage[0]?.photo} width="w-[40%]"/>
+                                        <GridBodyItem padding="py-[10px]" className="flex justify-center items-center">{product.code}</GridBodyItem>
+                                        <GridBodyItem padding="py-[10px]" className="flex justify-center items-center">{product.name}</GridBodyItem>
+                                        <GridBodyItem padding="py-[10px]" className="flex justify-center items-center">{complementProduct.name}</GridBodyItem>
+            
+                                        <GridBodyItem padding="py-[10px]" className="flex justify-center items-center">
+                                            {loadings[product.id]?.status ? (
+                                                <p>{loadings[product.id].status}</p>
+                                            ) : (
+                                                <Toggle
+                                                    checked={product.active}
+                                                    onChange={() => handleToggle(product.id, !product.active, 'status')}
+                                                    labelRight={product.active ? "Ativo" : "Inativo"}
+                                                />
+                                            )}
+                                        </GridBodyItem>
+            
+                                        <GridBodyItem padding="py-[10px]" className="flex justify-center items-center">
+                                            {loadings[product.id]?.soldOut ? (
+                                                <p>{loadings[product.id].soldOut}</p>
+                                            ) : (
+                                                <Toggle
+                                                    checked={product.stock.totemSoldOut}
+                                                    onChange={() => handleToggle(product.id, !product.stock.totemSoldOut, 'soldOut')}
+                                                    labelRight="Esgotado"
+                                                />
+                                            )}
+                                        </GridBodyItem>
+            
+                                        <GridBodyItem padding="py-[10px]" className="flex justify-center items-center">
+                                            {formatMoney(product.price)}
+                                        </GridBodyItem>
+            
+                                        <GridBodyItem padding="py-[10px]" className="flex justify-center items-center gap-2">
+                                            <button
+                                                type="button"
+                                                className="text-white bg-black px-3 py-1 rounded"
+                                                onClick={() => openEditProductModal(product.id, complementProduct.id)}
+                                            >Editar</button>
+            
+                                            <button
+                                                className="text-white bg-red-600 hover:bg-red-700 px-3 py-1 rounded"
+                                                onClick={() => openDeleteModal(product.id, '/delete/product', "Product")}
+                                            >Excluir</button>
+                                        </GridBodyItem>
+                                    </GridBodyRow>
+                                ))}
 
-                            <GridBodyItem padding="py-[10px]" className="flex justify-center items-center">
-                                {formatMoney(complementProduct.price)}
-                            </GridBodyItem>
-
-                            <GridBodyItem padding="py-[10px]" className="flex justify-center items-center gap-2">
-                                <button
-                                    type="button"
-                                    className="text-white bg-black px-3 py-1 rounded"
-                                    onClick={() => openEditProductModal(complementProduct._id)}
-                                >Editar</button>
-
-                                <button
-                                    className="text-white bg-red-600 hover:bg-red-700 px-3 py-1 rounded"
-                                    onClick={() => openDeleteModal(complementProduct._id, '/delete/product', "Product")}
-                                >Excluir</button>
-                            </GridBodyItem>
-                        </GridBodyRow>
-                    ))}
-
+                                <GridBodyRow
+                                    gridCols="grid-cols-[0.5fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr]"
+                                    background="gray-200"
+                                    className="mx-5"
+                                >
+                                    <GridBodyItem padding="py-[10px]"/>
+                                    <GridBodyItem padding="py-[10px]"/>
+                                    <GridBodyItem padding="py-[10px]"/>
+                                    <GridBodyItem padding="py-[10px]"/>
+                                    <GridBodyItem padding="py-[10px]"/>
+                                    <GridBodyItem padding="py-[10px]"/>
+                                    <GridBodyItem padding="py-[10px]" />
+                                    <GridBodyItem padding="py-[10px]" className="flex justify-center items-center">
+                                        <Link
+                                            preserveState
+                                            href={`/company/${company}/branch/${branch}/complements-categories/sort-items/${complementID}/${complementProduct.id}`}
+                                            className="text-white bg-black px-3 py-1 rounded"
+                                            onClick={() => handleLoadingsClick('page', true)}
+                                        >Ordenar Produtos</Link>
+                                    </GridBodyItem>
+                                </GridBodyRow>
+                            </>
+                        )
+                    })}
+                    
                     <GridBodyRow
-                        gridCols="grid-cols-[0.5fr_1fr_1fr_1fr_1fr_1fr_1fr]"
+                        gridCols="grid-cols-[0.5fr_1fr_1fr_1fr_1fr_1fr_2fr]"
                         background="gray-200"
                     >
                         <GridBodyItem padding="py-[10px]"/>
@@ -436,7 +473,12 @@ const CategoryAndComplementCard: React.FC<ICategoryAndComplementCardProps> = ({
                         <GridBodyItem padding="py-[10px]"/>
                         <GridBodyItem padding="py-[10px]"/>
                         <GridBodyItem padding="py-[10px]"/>
-                        <GridBodyItem padding="py-[10px]">
+                        <GridBodyItem padding="py-[10px]" className="flex fex-row gap-2 mx-auto">
+                            <button
+                                className="text-white bg-black px-3 py-1 rounded"
+                                onClick={() => handleModalsClick('complementGroupCategory', true)}
+                            >Adicionar Sub-Grupo</button>
+
                             <button
                                 type="button"
                                 className="text-white bg-black px-3 py-1 rounded"
@@ -491,6 +533,11 @@ const CategoryAndComplementCard: React.FC<ICategoryAndComplementCardProps> = ({
                 editedProduct={editedProduct}
                 categoriesComplements={categoriesComplements}
                 onClose={() => handleModalsClick('editComplement' ,false)}
+            />
+
+            <CreateComplementGroupCategoryModal
+                show={modals.complementGroupCategory}
+                onClose={() => handleModalsClick('complementGroupCategory', false)}
             />
 
             <DeleteModal

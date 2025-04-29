@@ -146,7 +146,7 @@ const EditComplementModal: React.FC<IEditComplementModalProps> = ({
 
             formData.append("existingImages", JSON.stringify(existingImages));
 
-            await api.post('edit/product', formData, {
+            await api.post('/edit/product', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 }
@@ -155,7 +155,7 @@ const EditComplementModal: React.FC<IEditComplementModalProps> = ({
             window.location.reload();
         } catch (err: unknown) {
             setLoading(false)
-            console.error(err);
+            console.error("Erro no handleFormState: ", err);
         }
     };
 
@@ -171,7 +171,7 @@ const EditComplementModal: React.FC<IEditComplementModalProps> = ({
                 })) || [];
 
             setFormState({
-                id: editedProduct?._id,
+                id: editedProduct?._id || editedProduct?.id,
                 active: editedProduct?.active,
                 name: editedProduct?.name || "",
                 description: editedProduct?.description || "",

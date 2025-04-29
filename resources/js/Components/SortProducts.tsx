@@ -15,6 +15,11 @@ interface ISortProductsProps {
 
 const SortProducts: React.FC<ISortProductsProps> = ({ sortedProducts, type, branch, company }) => {
 
+    console.log('sortedProducts', sortedProducts)
+    console.log('type', type)
+    console.log('branch', branch)
+    console.log('company', company)
+
     const { props } = usePage()
 
     const [products, setProducts] = useState<Product[]>([])
@@ -50,6 +55,7 @@ const SortProducts: React.FC<ISortProductsProps> = ({ sortedProducts, type, bran
                 window.location.href = `/company/${company}/branch/${branch}/complements-categories`
             }
         } catch (error) {
+            setLoading(false)
             console.error("Erro no handleConfirmChange: ", error)
         }
     }
@@ -75,8 +81,8 @@ const SortProducts: React.FC<ISortProductsProps> = ({ sortedProducts, type, bran
                         >
                             {products.map((product, index) => (
                                 <CardDroppable
-                                    key={product._id}
-                                    id={product._id}
+                                    key={product.id || product._id}
+                                    id={product.id || product._id}
                                     name={product.name}
                                     index={index}
                                 />

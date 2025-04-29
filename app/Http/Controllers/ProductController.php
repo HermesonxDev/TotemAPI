@@ -237,12 +237,13 @@ class ProductController extends Controller {
     }
 
     public function edit(Request $request) {
+        Log::info('request', [$request->all()]);
 
         $validator = Validator::make($request->all(), [
             'id'              => 'required|string',
             'active'          => 'required',
             'name'            => 'required|string',
-            'description'     => 'required|string',
+            'description'     => 'nullable|string',
             'slug'            => 'nullable|string',
             'price'           => 'required|numeric',
             'preparationTime' => 'required|numeric',
@@ -423,27 +424,31 @@ class ProductController extends Controller {
     }
 
     public function sort(Request $request) {
-
         $validator = Validator::make($request->all(), [
             'products' => 'required|array',
-            'products.*._id' => 'required|string|exists:products,_id',
             'products.*.seq' => 'required|integer|min:1',
         ]);
-    
+
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
-    
+
         try {
             foreach ($request->products as $productData) {
-                Product::where('_id', $productData['_id'])
+                $productId = $productData['_id'] ?? $productData['id'] ?? null;
+
+                if (!$productId) {
+                    continue;
+                }
+
+                Product::where('_id', $productId)
                     ->update(['seq' => $productData['seq']]);
             }
-    
+
             return response()->json([
                 'message' => 'Produtos atualizados com sucesso!',
             ], 200);
-            
+
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Erro ao atualizar os produtos',
@@ -451,6 +456,7 @@ class ProductController extends Controller {
             ], 500);
         }
     }
+
 
     public function delete(Request $request) {
 

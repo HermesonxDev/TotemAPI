@@ -404,7 +404,8 @@ class BranchController extends Controller {
             $query = Branch::query();
 
             if ($id) {
-                $query->where('_id', $id);
+                $branchID = new ObjectId($id);
+                $query->where('_id', $branchID);
 
                 $existsQuery = clone $query;
 

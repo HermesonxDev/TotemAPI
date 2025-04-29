@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 use Illuminate\Support\Facades\Validator;
+use App\Models\Complementsgroupscategory;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use App\Models\Complementsgroup;
@@ -171,7 +172,7 @@ class ItemsController extends Controller {
     }    
 
 
-    public function sort_complement_products(Request $request, string $company, string $branch, string $complementID){
+    public function sort_complement_products(Request $request, string $company, string $branch, string $complementID, string $complementCategoryID){
         $branchData = $this->getBranchData($branch);
         $companyData = $this->getCompanyData($company);
 
@@ -179,9 +180,11 @@ class ItemsController extends Controller {
             ->sortBy('seq')
             ->values();
 
-        $sortComplementsProducts = $this->getComplementsProductData($complementID, $branch)
-            ->sortBy('seq')
-            ->values();
+        $complementsProducts = collect($this->getComplementsProductData($complementID, $branch));
+
+        $sortComplementsProducts = optional($complementsProducts->firstWhere('id', $complementCategoryID))['products'] ?? [];
+        
+        $sortComplementsProducts = collect($sortComplementsProducts)->sortBy('seq')->values()->toArray();            
 
         return Inertia::render('Items', [
             'branch' => $branchData,
@@ -208,9 +211,7 @@ class ItemsController extends Controller {
             ->sortBy('seq')
             ->values();
             
-        $complementsProducts = $this->getComplementsProductData($complementID, $branch)
-            ->sortBy('seq')
-            ->values();
+        $complementsProducts = $this->getComplementsProductData($complementID, $branch);
 
         return Inertia::render('Items', [
             'branch' => $branchData,
@@ -256,13 +257,16 @@ class ItemsController extends Controller {
         ], 200, [], JSON_UNESCAPED_SLASHES);
     }
 
+    
     private function getBranchData(string $branch) {
         return Branch::findOrFail($branch);
     }
 
+
     private function getCompanyData(string $company) {
         return Company::findOrFail($company);
     }
+
 
     private function getCategoriesData(string $branch) {
         $branchId = new ObjectId($branch);
@@ -379,7 +383,6 @@ class ItemsController extends Controller {
 
     private function getComplementsProductData(string $complementID, string $branch) {
         $complements = $this->getComplementsData($branch);
-
         $filteredComplement = $complements->firstWhere('_id', $complementID);
 
         if (!$filteredComplement) {
@@ -394,52 +397,32 @@ class ItemsController extends Controller {
             return collect();
         }
 
-        $products = Product::whereIn('_id', $objectIds)->where('deleted', '<>', true)->get();
+        $products = Product::whereIn('_id', $objectIds)
+            ->where('deleted', '<>', true)
+            ->get();
 
-        return $products->map(function ($product) {
-            return [
-                '_id' => (string) $product->_id,
-                'seq' => $product->seq,
-                'updatedAt' => $product->updatedAt,
-                'createdAt' => $product->createdAt,
-                'name' => $product->name,
-                'category' => (string) $product->category,
-                'description' => $product->description,
-                'slug' => $product->slug,
-                'code' => (string) $product->code,
-                'barCode' => $product->barCode,
-                'relatedPeriod' => $product->relatedPeriod,
-                'company' => (string) $product->company,
-                'branch' => (string) $product->branch,
-                '__v' => $product->__v,
-                'staticImage' => $product->staticImage,
-                'original_cloned_id' => (string) $product->original_cloned_id,
-                'active' => filter_var($product->active, FILTER_VALIDATE_BOOLEAN),
-                'credit' => $product->credit,
-                'period' => $product->period,
-                'complementsGroups' => $product->complementsGroups,
-                'sliderHeader' => [
-                    'slideImageEnabled' => $product->sliderHeader['slideImageEnabled'],
-                    'image' => array_map(function ($image) {
-                        return [
-                            'active' => $image['active'],
-                            'photo' => $image['photo'],
-                            'preferredType' => $image['preferredType'],
-                            '_id' => (string) $image['id'],
-                        ];
-                    }, $product->sliderHeader['image']),
-                    //'video' => $product->sliderHeader['video']
-                ],
-                'settingsTotem' => $product->settingsTotem,
-                'locationTypes' => $product->locationTypes,
-                'preparationTime' => $product->preparationTime,
-                'stock' => $product->stock,
-                'costprice' => $product->costprice,
-                'indoorPrices' => $product->indoorPrices,
-                'price' => $product->price,
-                'complementGroupCategory' => (string) $product->complementGroupCategory ?? ''
-            ];
-        });
+        $complementsGroupsCategory = Complementsgroupscategory::where('branch', new ObjectId($branch))
+            ->get()
+            ->sortBy('seq');
+
+        $productsGroupedByCategory = $products->groupBy('complementGroupCategory');
+
+        $result = [];
+
+        foreach ($complementsGroupsCategory as $category) {
+            $categoryProducts = $productsGroupedByCategory->get($category->id) ?? collect();
+
+            $categoryProducts = $categoryProducts->sortBy('seq');
+
+            if ($categoryProducts->isNotEmpty()) {
+                $result[] = [
+                    'name' => $category->name,
+                    'id' => (string) $category->id,
+                    'products' => $categoryProducts->values()->toArray(),
+                ];
+            }
+        }
+
+        return $result;
     }
-
 }

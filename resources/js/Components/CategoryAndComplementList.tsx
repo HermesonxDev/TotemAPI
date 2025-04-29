@@ -1,17 +1,18 @@
-import { Category, Complement, CategoryAndComplementListModals, Product, CategoryAndComplementListSort } from "@/utils/interfaces"
+import { Category, Complement, CategoryAndComplementListModals, Product, CategoryAndComplementListSort, ComplementProducts } from "@/utils/interfaces"
 import CategoryAndComplementCard from "./CategoryAndComplementCard"
 import { useState } from "react"
 import CreateCategoryModal from "./CreateCategoryModal/Index"
 import CreateComplementGroupModal from "./CreateComplementGroupModal/Index"
 import SortCategories from "./SortCategories"
 import SortComplementGroup from "./SortComplementGroup"
+import CreateComplementGroupCategoryModal from "./CreateComplementGroupCategoryModal/Index"
 
 interface ICategoryAndComplementListProps {
     branch: string,
     company: string | undefined,
     categories?: Category[],
     categoriesProducts?: Product[],
-    complementsProducts?: Product[],
+    complementsProducts?: ComplementProducts[],
     complements?: Complement[],
     categoriesComplements?: Complement[],
     sortCategoriesProducts?: Product[],
@@ -32,7 +33,7 @@ const CategoryAndComplementList: React.FC<ICategoryAndComplementListProps> = ({
 
     const [modals, setModals] = useState<CategoryAndComplementListModals>({
         category: false,
-        complementGroup: false
+        complementGroup: false,
     })
 
     const [sortType, setSortType] = useState<CategoryAndComplementListSort>({

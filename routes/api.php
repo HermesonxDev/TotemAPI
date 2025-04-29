@@ -42,7 +42,7 @@ Route::prefix('/pdv')->group(function () {
 });
 
 // Rota de Teste
-Route::post('/test', [ComplementsGroupsCategoryController::class, 'create']);
+Route::get('/test', [ComplementsGroupsCategoryController::class, 'complements_groups_categories']);
 
 if (app()->environment('testing')) {
     Route::prefix('test')->group(function () {

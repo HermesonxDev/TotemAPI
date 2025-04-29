@@ -1,5 +1,5 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Branch, Category, Company, Complement, Product } from '@/utils/interfaces';
+import { Branch, Category, Company, Complement, ComplementProducts, Product } from '@/utils/interfaces';
 import { Head } from '@inertiajs/react';
 import CategoryAndComplementList from '@/Components/CategoryAndComplementList';
 import KDS from '@/Components/KDS';
@@ -16,7 +16,7 @@ interface IItemsProps {
     sortCategoryProducts?: Product[],
     categoriesComplements?: Complement[],
     complementID?: string,
-    complementsProducts?: Product[],
+    complementsProducts?: ComplementProducts[],
     sortComplementsProducts?: Product[],
 }
 

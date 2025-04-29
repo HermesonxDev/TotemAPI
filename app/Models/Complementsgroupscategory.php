@@ -14,13 +14,14 @@ class Complementsgroupscategory extends Model {
     public const UPDATED_AT = 'updatedAt';
 
     protected $fillable = [
+        'active',
         'seq',
         'name',
         'description',
-        'complementGroup',
         'branch',
         'company',
         '__v',
+        'original_cloned_id',
         'deleted'
     ];
 

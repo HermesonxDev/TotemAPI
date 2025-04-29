@@ -573,6 +573,14 @@ export interface EditComplementGroupForm {
     company?: string | unknown
 }
 
+export interface CreateComplementGroupCategoryForm {
+    active: boolean,
+    name: string,
+    description: string,
+    branch?: string | unknown,
+    company?: string | unknown,
+}
+
 export interface CreateCompanyForm {
     active: boolean,
     name: string,
@@ -822,7 +830,7 @@ export interface LayoutModals {
 
 export interface CategoryAndComplementListModals {
     category: boolean,
-    complementGroup: boolean
+    complementGroup: boolean,
 }
 
 export interface CategoryAndComplementListSort {
@@ -838,6 +846,7 @@ export interface CategoryAndComplementCardModals {
     category: boolean,
     complementGroup: boolean,
     sortProducts: boolean,
+    complementGroupCategory: boolean,
     delete: boolean
 }
 
@@ -1154,4 +1163,10 @@ export interface TotemEfficiencyData {
     email: string,
     totem: string,
     efficiency: number
+}
+
+export interface ComplementProducts {
+    name: string,
+    id: string,
+    products: Product[]
 }

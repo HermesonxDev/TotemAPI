@@ -262,7 +262,7 @@ const EditProductModal: React.FC<IEditProductModalProps> = ({
             console.error("Erro no handleFormState: ", err);
         }
     };
-
+    
     useEffect(() => {
         if (editedProduct) {
             const selectedComplements = editedProduct.complementsGroups || [];
@@ -286,7 +286,7 @@ const EditProductModal: React.FC<IEditProductModalProps> = ({
                 })) || [];
 
             setFormState({
-                id: editedProduct?._id || "",
+                id: editedProduct?._id || editedProduct?.id || "",
                 active: editedProduct?.active,
                 name: editedProduct?.name || "",
                 description: editedProduct?.description || "",
@@ -302,7 +302,7 @@ const EditProductModal: React.FC<IEditProductModalProps> = ({
             });
         }
     }, [editedProduct, categoriesComplements]);
-
+    
     return (
         <Modal show={show} onClose={onClose}>
             <Container>

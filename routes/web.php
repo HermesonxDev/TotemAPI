@@ -1,12 +1,15 @@
 <?php
 
 use Inertia\Inertia;
+use Illuminate\Http\Request;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ComplementsGroupsCategoryController;
 use App\Http\Controllers\ComplementsGroupsController;
 use App\Http\Controllers\OperationalStatusController;
 use App\Http\Controllers\ProductCategoryController;
 use App\Http\Controllers\OperatingPeriodController;
+use App\Http\Controllers\IntegrationsController;
 use App\Http\Controllers\MenuCloningController;
 use App\Http\Controllers\TotemUsersController;
 use App\Http\Controllers\DashboardController;
@@ -14,12 +17,9 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\BranchController;
-use App\Http\Controllers\IntegrationsController;
 use App\Http\Controllers\PeriodController;
 use App\Http\Controllers\ItemsController;
 use App\Http\Controllers\UserController;
-
-use Illuminate\Http\Request;
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
@@ -66,6 +66,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/period', [PeriodController::class, 'create']);
         Route::post('/complement-group', [ComplementsGroupsController::class, 'create']);
         Route::post('/totem-user', [TotemUsersController::class, 'create']);
+        Route::post('/complement-group-category', [ComplementsGroupsCategoryController::class, 'create']);
     });
 
 
@@ -155,7 +156,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::prefix('complements-categories')->group(function () {
             Route::get('/', [ItemsController::class, 'complements']);
             Route::get('/{complement}', [ItemsController::class, 'complement_products']);
-            Route::get('/sort-items/{complement}', [ItemsController::class, 'sort_complement_products']);
+            Route::get('/sort-items/{complement}/{complementCategoryID}', [ItemsController::class, 'sort_complement_products']);
         });
 
         Route::get('/order-panel', [ItemsController::class, 'order_panel']);
