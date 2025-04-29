@@ -4,6 +4,8 @@ FROM php:8.2-fpm AS backend
 RUN apt-get update && apt-get install -y \
     git unzip curl zip libpng-dev libonig-dev libxml2-dev libzip-dev \
     libssl-dev pkg-config gnupg2 gnupg npm nodejs nginx supervisor \
+    ca-certificates \
+    && update-ca-certificates \
     && pecl install mongodb \
     && docker-php-ext-enable mongodb \
     && docker-php-ext-install pdo pdo_mysql mbstring zip bcmath
